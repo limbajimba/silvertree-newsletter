@@ -1,0 +1,345 @@
+{
+  "generated_at_utc": "2026-01-06T00:00:00Z",
+  "owner": {
+    "name": "SilverTree Equity",
+    "portfolio_source": "https://www.silvertreeequity.com/portfolio/"
+  },
+  "competitor_clusters": [
+    {
+      "cluster_id": "cpg_tpm_rgm",
+      "name": "CPG Trade Promotion Management + Revenue Growth Management (TPM/TPO/RGM)",
+      "what_it_is": "Software + analytics to optimize price/promo/mix/trade terms, improve promo ROI, and govern trade spend.",
+      "search_keyword_buckets": {
+        "events": ["acquisition", "merger", "funding", "strategic investment", "partnership", "reseller", "OEM"],
+        "product": ["trade promotion management", "trade promotion optimization", "promotion ROI", "revenue growth management", "price pack architecture", "TPM", "TPO", "RGM"],
+        "commercial_signals": ["new module", "AI feature", "retailer integration", "SAP integration", "new geography launch"],
+        "leadership": ["CEO", "CRO", "CPO", "Chief Product Officer", "VP Sales", "Head of Partnerships"]
+      },
+      "canonical_competitors_seed": [
+        "TELUS Exceedra",
+        "Oracle Demantra",
+        "SAP (TPM / planning ecosystem)",
+        "Vistex",
+        "UpClear",
+        "Blacksmith Applications",
+        "Wiser Solutions"
+      ]
+    },
+    {
+      "cluster_id": "higher_ed_sis",
+      "name": "Higher Education Student Information Systems (SIS)",
+      "what_it_is": "Core platforms for the student lifecycle (admissions, records, billing, reporting) for universities/colleges.",
+      "search_keyword_buckets": {
+        "events": ["acquisition", "funding", "university rollout", "framework contract", "public sector procurement"],
+        "product": ["student information system", "SIS", "student records", "UCISA", "statutory reporting", "campus solutions"],
+        "commercial_signals": ["go-live", "implementation partner", "data migration", "cloud migration", "new module"],
+        "leadership": ["VP Product", "Head of Higher Education", "GM", "Managing Director"]
+      },
+      "canonical_competitors_seed": [
+        "Tribal SITS",
+        "Ellucian",
+        "Workday Student",
+        "Oracle PeopleSoft Campus Solutions",
+        "Anthology Student",
+        "Jenzabar"
+      ]
+    },
+    {
+      "cluster_id": "enterprise_architecture",
+      "name": "Enterprise Architecture + Digital Transformation Platforms (EA / APM / Process)",
+      "what_it_is": "Tools to model enterprise architecture, processes, portfolios, roadmaps; often deep Microsoft ecosystem integration.",
+      "search_keyword_buckets": {
+        "events": ["acquisition", "private equity", "strategic partnership", "cloud migration", "FedRAMP", "ISO certification"],
+        "product": ["enterprise architecture", "EA tool", "application portfolio management", "business process modeling", "ArchiMate", "TOGAF"],
+        "commercial_signals": ["Microsoft partnership", "Teams/SharePoint/PowerBI integration", "new SaaS release"],
+        "leadership": ["CEO", "CTO", "Chief Architect", "VP Alliances"]
+      },
+      "canonical_competitors_seed": [
+        "LeanIX (SAP)",
+        "Bizzdesign",
+        "BOC Group ADOIT",
+        "Ardoq",
+        "MEGA Hopex",
+        "Software AG Alfabet",
+        "Avolution Abacus"
+      ]
+    },
+    {
+      "cluster_id": "marketing_automation_cdp",
+      "name": "Marketing Automation + CDP / Lifecycle Engagement (eCommerce)",
+      "what_it_is": "Platforms for omnichannel lifecycle messaging, personalization, segmentation, and CDP-style customer data activation.",
+      "search_keyword_buckets": {
+        "events": ["acquisition", "funding", "strategic partnership", "agency partnership", "new integration"],
+        "product": ["marketing automation", "customer data platform", "CDP", "lifecycle engagement", "personalization", "email/SMS automation"],
+        "commercial_signals": ["Shopify integration", "Magento integration", "composable CDP", "AI recommendations"],
+        "leadership": ["CEO", "CMO", "VP Partnerships", "Head of Product"]
+      },
+      "canonical_competitors_seed": [
+        "Bloomreach",
+        "HubSpot Marketing Hub",
+        "Klaviyo",
+        "SAP Emarsys",
+        "Adobe Marketo Engage",
+        "Braze",
+        "ActiveCampaign"
+      ]
+    },
+    {
+      "cluster_id": "grants_subsidies",
+      "name": "Grants/Subsidies Advisory + Grant Opportunity Databases (NL/EU)",
+      "what_it_is": "Advisory firms + databases that help companies find and apply for subsidies/grants; often sector- and scheme-specific.",
+      "search_keyword_buckets": {
+        "events": ["acquisition", "roll-up", "new product launch", "government scheme update"],
+        "product": ["subsidy database", "grant database", "funding advisory", "innovation incentives", "SDE++", "WBSO", "Horizon Europe"],
+        "commercial_signals": ["new portal", "API", "alerts product", "data partnership"],
+        "leadership": ["Managing Partner", "Head of Digital", "Commercial Director"]
+      },
+      "canonical_competitors_seed": [
+        "PNO Innovation (PNO Consultants)",
+        "Berenschot (funding advisory)",
+        "Grant Thornton (NL innovation / subsidy advisory - practice area)",
+        "Big 4 innovation incentives practices"
+      ]
+    },
+    {
+      "cluster_id": "fincrime_clm_kyc",
+      "name": "Financial Crime / Client Lifecycle Management (CLM) + KYC/AML Platforms",
+      "what_it_is": "Platforms that orchestrate onboarding + KYC/AML policy/rules, screening/IDV, and lifecycle reviews for financial institutions.",
+      "search_keyword_buckets": {
+        "events": ["acquisition", "funding", "bank rollout", "regulatory change", "data provider partnership"],
+        "product": ["client lifecycle management", "CLM", "KYC", "AML", "CDD/EDD", "screening", "ID verification", "rules engine"],
+        "commercial_signals": ["new jurisdiction coverage", "agentic AI", "case management", "workflow engine"],
+        "leadership": ["CEO", "CPO", "Chief Risk Officer", "Head of Financial Crime"]
+      },
+      "canonical_competitors_seed": [
+        "Pega CLM",
+        "Appway",
+        "Encompass Corporation",
+        "ComplyAdvantage",
+        "LexisNexis Risk Solutions",
+        "Verafin"
+      ]
+    },
+    {
+      "cluster_id": "utilities_customer_systems",
+      "name": "Utilities Customer Systems (Billing/CIS/CRM) + Retail Energy Platforms",
+      "what_it_is": "End-to-end platforms for utilities/energy retailers: customer care, billing, product/tariff management, analytics, and operations.",
+      "search_keyword_buckets": {
+        "events": ["acquisition", "utility contract win", "platform rollout", "market entry", "regulatory change"],
+        "product": ["customer information system", "CIS", "utility billing", "metering", "tariff management", "energy retail platform"],
+        "commercial_signals": ["migration", "go-live", "data platform", "smart meter integration", "AI forecasting"],
+        "leadership": ["CEO", "GM Utilities", "Head of Product", "VP Delivery"]
+      },
+      "canonical_competitors_seed": [
+        "Kraken Technologies",
+        "Gentrack",
+        "Hansen Technologies",
+        "Oracle Utilities",
+        "SAP IS-U ecosystem",
+        "Salesforce Energy & Utilities Cloud"
+      ]
+    }
+  ],
+  "companies": [
+    {
+      "company_id": "kantar-xtel",
+      "name": "Kantar XTEL",
+      "company_context": "AI-first revenue management platform focused on trade promotion management/optimization for CPG.",
+      "websites": ["https://xtech.ai/", "https://upg-cd-ne.kantar.com/campaigns/kantar-xtel/trade-promotion-management-and-optimisation"],
+      "sector": "Trade Promotion / Promotion Lifecycle + Analytics",
+      "cluster_id": "cpg_tpm_rgm",
+      "competitors_candidate": [
+        "TELUS Exceedra",
+        "Oracle Demantra",
+        "Vistex",
+        "UpClear",
+        "Blacksmith Applications",
+        "Wiser Solutions"
+      ],
+      "competitor_cluster_tags": ["TPM", "TPO", "trade spend", "promo ROI", "RGM"],
+      "search_query_seeds": {
+        "company_terms": ["Kantar XTEL", "XTEL", "xtech.ai"],
+        "deal_terms": ["acquisition", "merger", "strategic partnership", "private equity", "funding"],
+        "product_terms": ["trade promotion management", "trade promotion optimization", "promotion ROI", "revenue management platform"]
+      }
+    },
+    {
+      "company_id": "stepup-rgm",
+      "name": "StepUp RGM",
+      "company_context": "Revenue Growth Management (RGM) software + big data solutions vendor (now combined/branded within Kantar XTEL).",
+      "websites": ["https://xtech.ai/", "http://www.stepupconsulting.eu"],
+      "sector": "Revenue Growth Management SaaS + Big Data",
+      "cluster_id": "cpg_tpm_rgm",
+      "competitors_candidate": [
+        "Pricefx",
+        "Zilliant",
+        "Vendavo",
+        "PROS",
+        "NielsenIQ (RGM / analytics services)"
+      ],
+      "competitor_cluster_tags": ["RGM", "pricing", "promo effectiveness", "trade terms", "assortment"],
+      "search_query_seeds": {
+        "company_terms": ["StepUp RGM", "StepUp Consulting", "Kantar XTEL StepUp"],
+        "deal_terms": ["acquisition", "merger", "strategic partnership", "funding"],
+        "product_terms": ["revenue growth management", "price pack architecture", "promo ROI", "trade profitability"]
+      }
+    },
+    {
+      "company_id": "thesis",
+      "name": "Thesis",
+      "company_context": "Cloud-based student information systems (SIS) for higher education (incl. UK/Canada offerings).",
+      "websites": ["https://www.thesiscloud.com/", "https://www.thesis.sm/"],
+      "sector": "Student Information Management for Higher Education",
+      "cluster_id": "higher_ed_sis",
+      "competitors_candidate": [
+        "Tribal SITS",
+        "Ellucian",
+        "Workday Student",
+        "Oracle PeopleSoft Campus Solutions",
+        "Anthology Student",
+        "Jenzabar"
+      ],
+      "competitor_cluster_tags": ["SIS", "student records", "university ERP", "statutory reporting"],
+      "search_query_seeds": {
+        "company_terms": ["Thesis SIS", "Thesis Student Management", "thesiscloud", "thesis.sm"],
+        "deal_terms": ["acquisition", "funding", "strategic partnership"],
+        "product_terms": ["student information system", "SIS", "university implementation", "cloud migration"]
+      }
+    },
+    {
+      "company_id": "orbus-software",
+      "name": "Orbus Software",
+      "aliases": ["iServer365", "OrbusInfinity"],
+      "company_context": "Enterprise architecture / digital transformation platform with strong Microsoft ecosystem alignment.",
+      "websites": ["https://www.orbussoftware.com/"],
+      "sector": "Enterprise Architecture / Digital Transformation Platform",
+      "cluster_id": "enterprise_architecture",
+      "competitors_candidate": [
+        "LeanIX (SAP)",
+        "Bizzdesign",
+        "BOC Group ADOIT",
+        "Ardoq",
+        "MEGA Hopex",
+        "Avolution Abacus",
+        "Software AG Alfabet"
+      ],
+      "competitor_cluster_tags": ["EA", "APM", "process modeling", "ArchiMate", "TOGAF"],
+      "search_query_seeds": {
+        "company_terms": ["Orbus", "OrbusInfinity", "iServer365", "iServer"],
+        "deal_terms": ["acquisition", "private equity", "strategic partnership"],
+        "product_terms": ["enterprise architecture platform", "EA tool", "application portfolio management", "process modeling"]
+      }
+    },
+    {
+      "company_id": "salesmanago",
+      "name": "SALESmanago",
+      "company_context": "AI-powered lifecycle engagement / marketing automation platform for eCommerce personalization and omnichannel journeys.",
+      "websites": ["https://www.salesmanago.com/"],
+      "sector": "Marketing Automation + CDP",
+      "cluster_id": "marketing_automation_cdp",
+      "competitors_candidate": [
+        "Bloomreach",
+        "HubSpot Marketing Hub",
+        "Klaviyo",
+        "SAP Emarsys",
+        "Adobe Marketo Engage",
+        "Braze",
+        "ActiveCampaign"
+      ],
+      "competitor_cluster_tags": ["marketing automation", "CDP", "personalization", "eCommerce"],
+      "search_query_seeds": {
+        "company_terms": ["SALESmanago", "SalesManago", "Lifecycle Engagement Platform"],
+        "deal_terms": ["acquisition", "funding", "strategic partnership"],
+        "product_terms": ["marketing automation", "customer data platform", "CDP", "personalization", "email SMS automation"]
+      }
+    },
+    {
+      "company_id": "vindsubsidies",
+      "name": "Vindsubsidies",
+      "company_context": "One of the largest grants/subsidies advisory firms in the Netherlands; also operates a subsidy database + digital services.",
+      "websites": ["https://www.vindsubsidies.nl/en/"],
+      "sector": "Grant/Subsidy Advisory + Database",
+      "cluster_id": "grants_subsidies",
+      "related_entities_to_monitor": ["Dorucon", "De Breed & Partners", "Raaf", "Trias", "Knippenborg", "Boonstoppel"],
+      "competitors_candidate": [
+        "PNO Innovation (PNO Consultants)",
+        "Berenschot (funding advisory)",
+        "Grant Thornton (NL innovation / subsidy advisory - practice area)",
+        "Big 4 innovation incentives practices"
+      ],
+      "competitor_cluster_tags": ["subsidy database", "grant advisory", "innovation incentives", "NL/EU schemes"],
+      "search_query_seeds": {
+        "company_terms": ["Vindsubsidies", "vindsubsidies.nl", "subsidy database"],
+        "deal_terms": ["acquisition", "roll-up", "strategic partnership"],
+        "product_terms": ["grant database", "subsidy alerts", "innovation funding", "SDE++", "WBSO", "Horizon Europe"]
+      }
+    },
+    {
+      "company_id": "fenergo",
+      "name": "Fenergo",
+      "company_context": "CLM + financial crime operating platform for onboarding, KYC/AML rules, screening/IDV and lifecycle management in financial institutions.",
+      "websites": ["https://www.fenergo.com/"],
+      "sector": "KYC + Client Lifecycle Management",
+      "cluster_id": "fincrime_clm_kyc",
+      "competitors_candidate": [
+        "Pega CLM",
+        "Appway",
+        "Encompass Corporation",
+        "ComplyAdvantage",
+        "LexisNexis Risk Solutions",
+        "Verafin"
+      ],
+      "competitor_cluster_tags": ["CLM", "KYC", "AML", "onboarding", "workflow", "rules engine"],
+      "search_query_seeds": {
+        "company_terms": ["Fenergo", "Fenergo CLM", "Fenergo KYC"],
+        "deal_terms": ["acquisition", "funding", "strategic partnership"],
+        "product_terms": ["client lifecycle management", "KYC", "AML", "CDD", "EDD", "fincrime operating system"]
+      }
+    },
+    {
+      "company_id": "agility-cis",
+      "name": "Agility CIS",
+      "company_context": "Utility billing + CRM/customer systems business (brand within/owned by Tally Group).",
+      "websites": ["https://tally.co/"],
+      "sector": "Utility Billing + CRM",
+      "cluster_id": "utilities_customer_systems",
+      "related_entities_to_monitor": ["Znalytics", "Webtools Energy"],
+      "competitors_candidate": [
+        "Gentrack",
+        "Hansen Technologies",
+        "Oracle Utilities",
+        "Kraken Technologies",
+        "SAP IS-U ecosystem"
+      ],
+      "competitor_cluster_tags": ["CIS", "utility billing", "energy retail", "customer care and billing"],
+      "search_query_seeds": {
+        "company_terms": ["Agility CIS", "Tally Agility", "CIS utility billing"],
+        "deal_terms": ["utility contract", "acquisition", "partnership", "go-live"],
+        "product_terms": ["customer information system", "utility billing", "energy retail platform", "migration"]
+      }
+    },
+    {
+      "company_id": "tally-group",
+      "name": "Tally Group",
+      "company_context": "Utility SaaS / retail energy platform group (also associated with Znalytics and Webtools Energy).",
+      "websites": ["https://tally.co/"],
+      "sector": "Utility SaaS / Retail Energy Platform + Modules",
+      "cluster_id": "utilities_customer_systems",
+      "related_entities_to_monitor": ["Znalytics", "Webtools Energy"],
+      "competitors_candidate": [
+        "Kraken Technologies",
+        "Gentrack",
+        "Hansen Technologies",
+        "Oracle Utilities",
+        "SAP IS-U ecosystem",
+        "Salesforce Energy & Utilities Cloud"
+      ],
+      "competitor_cluster_tags": ["retail energy platform", "billing", "customer care", "tariffs"],
+      "search_query_seeds": {
+        "company_terms": ["Tally Group", "tally.co", "Znalytics", "Webtools Energy"],
+        "deal_terms": ["acquisition", "utility contract win", "funding", "partnership"],
+        "product_terms": ["utility billing", "customer care and billing", "energy retail SaaS", "CIS"]
+      }
+    }
+  ]
+}

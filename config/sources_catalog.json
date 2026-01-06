@@ -1,0 +1,63 @@
+{
+  "rss_feeds": {
+    "finextra": "https://www.finextra.com/rss/headlines.aspx",
+    "finextra_regulation": "https://www.finextra.com/rss/channel.aspx?channel=regulation",
+    "techcrunch": "https://techcrunch.com/feed/",
+    "utility_dive": "https://www.utilitydive.com/feeds/news/",
+    "higher_ed_dive": "https://www.higheredive.com/feeds/news/",
+    "martech": "https://martech.org/feed/",
+    "cio": "https://www.cio.com/feed/"
+  },
+  "domain_sources": [
+    "gpbullhound.com",
+    "poinstitute.com",
+    "consumergoods.com",
+    "listedtech.com",
+    "cloudeagle.ai",
+    "gartner.com",
+    "tiatra.com",
+    "sumble.com",
+    "softwareadvice.com",
+    "cbinsights.com",
+    "martech.org",
+    "martechvibe.com",
+    "pnoconsultants.com",
+    "hezelburcht.com",
+    "sciencebusiness.net",
+    "finextra.com",
+    "thepaypers.com",
+    "utilityweek.co.uk",
+    "energylivenews.com",
+    "adexchanger.com",
+    "ucisa.ac.uk",
+    "g2.com",
+    "businesswire.com",
+    "researchandmarkets.com",
+    "techcrunch.com",
+    "utilitydive.com",
+    "higheredive.com",
+    "cio.com"
+  ],
+  "trusted_domains": [
+    "gpbullhound.com",
+    "finextra.com",
+    "thepaypers.com",
+    "utilitydive.com",
+    "higheredive.com",
+    "martech.org",
+    "cio.com",
+    "techcrunch.com",
+    "sciencebusiness.net",
+    "listedtech.com",
+    "poinstitute.com",
+    "consumergoods.com",
+    "utilityweek.co.uk",
+    "energylivenews.com",
+    "adexchanger.com",
+    "ucisa.ac.uk",
+    "gartner.com"
+  ],
+  "notes": [
+    "LinkedIn sources are excluded for now."
+  ]
+}

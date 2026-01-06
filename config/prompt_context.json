@@ -1,0 +1,573 @@
+{
+  "meta": {
+    "generated_at": "2026-01-06",
+    "timezone": "Europe/London",
+    "intended_use": "LLM context + query generation seed for weekly market-signals tracker",
+    "confidence_note": "Competitor lists and carve-out profiles below are heuristic starting points; validate with internal SilverTree owners and/or each company’s positioning."
+  },
+  "global_guidelines": {
+    "primary_goal": "Surface weekly, decision-useful signals for a PE fund: what happened, why it matters, portfolio impact, and whether a carve-out or add-on opportunity exists.",
+    "default_relevance_thresholds": {
+      "portfolio_company_item_keep_if_score_gte": 60,
+      "competitor_item_keep_if_score_gte": 70,
+      "major_deal_item_keep_if_score_gte": 80,
+      "industry_item_keep_if_score_gte": 70
+    },
+    "ignore_sources_global": [
+      "job boards (unless executive departures/appointments confirmed elsewhere)",
+      "generic vendor blogs / SEO content farms",
+      "press-release syndication mirrors (use the original issuer)",
+      "affiliate review sites with no primary reporting",
+      "webinar/event promos with no product or commercial announcement",
+      "minor awards lists with no commercial implication"
+    ],
+    "source_quality_weights": {
+      "company_press_release_or_IR": 1.0,
+      "regulatory_filings_or_tender_notices": 1.0,
+      "tier1_trade_press": 0.85,
+      "tier2_trade_press": 0.75,
+      "reputable_analyst_reports": 0.8,
+      "partner_press_release": 0.65,
+      "blogs_non_primary": 0.35,
+      "forums": 0.2
+    },
+    "dedupe_rules": {
+      "canonical_key": "normalize(url) OR hash(title + top_domain + published_date_bucket)",
+      "time_bucket": "24h",
+      "prefer_source_order": [
+        "company_press_release_or_IR",
+        "regulatory_or_tender",
+        "tier1_trade_press",
+        "tier2_trade_press"
+      ]
+    },
+    "carveout_screening_global_heuristics": {
+      "strong_positive_signals": [
+        "seller is conglomerate/strategic doing portfolio pruning",
+        "deal rationale mentions 'non-core' / 'focus on core' / 'divestiture' / 'carve-out'",
+        "target has distinct product lines, geographies, or customer segments with separate P&L",
+        "integration complexity or overlapping suites suggests parts may be redundant",
+        "buyer is private equity roll-up platform (often rationalizes portfolio)"
+      ],
+      "strong_negative_signals": [
+        "target is single-product, tightly integrated platform with shared infrastructure",
+        "transaction is distressed rescue with heavy operational entanglement",
+        "target is regulated utility core system with high switching cost and bespoke deployments (carve-outs harder)",
+        "highly bespoke services-heavy business with limited transferable IP"
+      ],
+      "output_fields_required": [
+        "carveout_flag",
+        "carveout_rationale",
+        "candidate_assets_or_modules",
+        "estimated_complexity",
+        "estimated_time_to_separate_months",
+        "integration_constraints"
+      ]
+    }
+  },
+  "sources_plan": {
+    "required_minimum": [
+      "GP Bullhound press releases",
+      "industry newsfeeds"
+    ],
+    "recommended_additional_sources_by_type": {
+      "company_owned": [
+        "company newsroom/press pages for each portfolio company",
+        "competitor newsrooms",
+        "investor/PE owner press pages (where applicable)"
+      ],
+      "deal_and_corporate_actions": [
+        "PE/IB advisories press pages (e.g., GP Bullhound, Arma, William Blair equivalents)",
+        "business registries / filings where relevant (Companies House for UK entities)",
+        "regulatory announcements relevant to sector (fincrime/AML, utilities market rules)"
+      ],
+      "industry_trade_press": [
+        "FinCrime/KYC: The Paypers, Finextra, GlobalComplianceNews-style outlets",
+        "Utilities/CIS: Utility Week, Energy Live News-style outlets, vendor-neutral analyst blogs",
+        "Marketing automation/CDP: MarTech/AdExchanger-style outlets",
+        "Enterprise architecture: CIO.com/enterprise IT trades, architecture community newsletters",
+        "Higher ed SIS: UCISA news, HE sector trades, procurement frameworks"
+      ],
+      "market_intel": [
+        "G2/Gartner-style category movement signals (used carefully; mostly for competitor discovery)",
+        "public procurement portals for education/utility contract wins",
+        "earnings call transcripts for strategic buyers (when relevant)"
+      ]
+    },
+    "notes": [
+      "LinkedIn sources are excluded for now."
+    ]
+  },
+  "sector_playbooks": {
+    "cpg_tpm_rgm": {
+      "ranked_high_signal_events": [
+        {
+          "rank": 1,
+          "event_type": "M&A / strategic investment in TPM/TPO/RGM vendor",
+          "why_high_signal": "Market consolidation + platform bundling changes win-rates and pricing power."
+        },
+        {
+          "rank": 2,
+          "event_type": "Major CPG customer wins or global rollouts (esp. SAP/Oracle ecosystem integrations)",
+          "why_high_signal": "Signals product maturity, integration advantage, and enterprise credibility."
+        },
+        {
+          "rank": 3,
+          "event_type": "New AI optimization / forecasting / scenario-planning module launch",
+          "why_high_signal": "Directly impacts differentiation and replacement cycles."
+        },
+        {
+          "rank": 4,
+          "event_type": "Strategic partnerships with data providers (retail POS, syndicated data) or SIs",
+          "why_high_signal": "Expands distribution + implementation capacity."
+        },
+        {
+          "rank": 5,
+          "event_type": "Leadership change: CEO/CRO/CPO",
+          "why_high_signal": "Often precedes go-to-market pivot or growth acceleration."
+        }
+      ],
+      "ranked_low_signal_events": [
+        { "rank": 1, "event_type": "webinars / conference sponsorships", "why_low_signal": "Marketing noise." },
+        { "rank": 2, "event_type": "minor feature updates", "why_low_signal": "Rarely changes competitive position." },
+        { "rank": 3, "event_type": "generic partner directory listings", "why_low_signal": "Not a real partnership signal." }
+      ],
+      "ideal_carveout_profile": {
+        "asset_type": "Vertical analytics / optimization module or legacy TPM product line inside a broader planning suite",
+        "size_preference": {
+          "arr_gbp": "5m–50m",
+          "employee_range": "40–300"
+        },
+        "geography_preference": ["UK", "Europe", "North America (selective)"],
+        "product_lines_of_interest": [
+          "trade spend management",
+          "promotion optimization",
+          "price/promo/mix analytics",
+          "CPG retailer execution analytics"
+        ],
+        "integration_constraints": [
+          "must have API or exportable data model",
+          "avoid deep dependency on parent-company shared data lake without separation plan",
+          "implementation ecosystem (SIs) should transfer or be rebuildable"
+        ]
+      }
+    },
+    "higher_ed_sis": {
+      "ranked_high_signal_events": [
+        { "rank": 1, "event_type": "Large university/college contract awards and go-lives", "why_high_signal": "Direct revenue + referenceability; indicates replacement cycle." },
+        { "rank": 2, "event_type": "Procurement framework wins (public sector)", "why_high_signal": "Creates durable pipeline access." },
+        { "rank": 3, "event_type": "Cloud migration platform announcements / major re-architecture", "why_high_signal": "Shifts TCO and competitiveness." },
+        { "rank": 4, "event_type": "M&A among SIS / campus IT vendors", "why_high_signal": "Bundling impacts buyer decisions and integration expectations." },
+        { "rank": 5, "event_type": "Leadership change in product/HE vertical", "why_high_signal": "Signals roadmap and commercial refocus." }
+      ],
+      "ranked_low_signal_events": [
+        { "rank": 1, "event_type": "campus event sponsorships", "why_low_signal": "Marketing noise." },
+        { "rank": 2, "event_type": "blog posts on student experience without product launch", "why_low_signal": "Low decision impact." }
+      ],
+      "ideal_carveout_profile": {
+        "asset_type": "Student lifecycle module suite or regional SIS business unit within broader ERP vendor",
+        "size_preference": { "arr_gbp": "10m–80m", "employee_range": "60–500" },
+        "geography_preference": ["UK", "Ireland", "Canada", "Nordics"],
+        "product_lines_of_interest": ["records", "admissions", "fee billing", "statutory reporting", "integration middleware"],
+        "integration_constraints": [
+          "data privacy + residency support",
+          "migration tooling and implementation partner bench required",
+          "avoid assets requiring multi-year bespoke rewrites without committed roadmap"
+        ]
+      }
+    },
+    "enterprise_architecture": {
+      "ranked_high_signal_events": [
+        { "rank": 1, "event_type": "M&A / PE platform formation in EA/APM space", "why_high_signal": "Consolidation and suite-building drives competitive displacement." },
+        { "rank": 2, "event_type": "Major Microsoft ecosystem partnership or co-sell motion", "why_high_signal": "Material distribution advantage." },
+        { "rank": 3, "event_type": "Launch of governance/AI-assisted modeling or portfolio automation", "why_high_signal": "Differentiation on productivity and automation." },
+        { "rank": 4, "event_type": "Large enterprise wins in regulated verticals", "why_high_signal": "Signals defensibility and compliance posture." },
+        { "rank": 5, "event_type": "Leadership change: CEO/CPO/Head of Alliances", "why_high_signal": "Often signals GTM shift (enterprise vs mid-market)." }
+      ],
+      "ranked_low_signal_events": [
+        { "rank": 1, "event_type": "template library updates", "why_low_signal": "Incremental." },
+        { "rank": 2, "event_type": "community certifications/badges", "why_low_signal": "Rarely revenue-driving." }
+      ],
+      "ideal_carveout_profile": {
+        "asset_type": "EA/APM tool or module suite divested from broader IT management portfolio",
+        "size_preference": { "arr_gbp": "8m–60m", "employee_range": "50–400" },
+        "geography_preference": ["Europe", "UK", "North America (selective)"],
+        "product_lines_of_interest": ["EA modeling", "APM", "roadmapping", "process modeling", "GRC-adjacent EA"],
+        "integration_constraints": [
+          "should support open standards (ArchiMate) and common exports",
+          "SSO/SCIM enterprise readiness required",
+          "avoid assets tightly coupled to parent proprietary platform without clean separation APIs"
+        ]
+      }
+    },
+    "marketing_automation_cdp": {
+      "ranked_high_signal_events": [
+        { "rank": 1, "event_type": "M&A / roll-ups in martech automation/CDP", "why_high_signal": "Category consolidates; pricing + bundling shifts." },
+        { "rank": 2, "event_type": "Major commerce-platform partnerships (Shopify/Adobe Commerce/etc.) or preferred app status", "why_high_signal": "Distribution + install base leverage." },
+        { "rank": 3, "event_type": "AI personalization/recommendation or cross-channel orchestration launch", "why_high_signal": "Direct feature competition; impacts churn and upsell." },
+        { "rank": 4, "event_type": "Large agency/SI partnership programs", "why_high_signal": "Channel expansion, influences mid-market adoption." },
+        { "rank": 5, "event_type": "Security/privacy compliance announcements (SOC2/ISO) enabling enterprise push", "why_high_signal": "Unlocks larger buyers." }
+      ],
+      "ranked_low_signal_events": [
+        { "rank": 1, "event_type": "minor connector additions", "why_low_signal": "Often table stakes." },
+        { "rank": 2, "event_type": "marketing awards", "why_low_signal": "PR-heavy." }
+      ],
+      "ideal_carveout_profile": {
+        "asset_type": "Email/SMS automation product line, CDP-lite module, or regional martech vendor divested from a broader suite",
+        "size_preference": { "arr_gbp": "5m–70m", "employee_range": "30–500" },
+        "geography_preference": ["Europe", "North America"],
+        "product_lines_of_interest": ["lifecycle automation", "personalization", "CDP activation", "recommendations"],
+        "integration_constraints": [
+          "deliverability infrastructure must be separable or replaceable",
+          "data governance and consent tooling required",
+          "avoid products reliant on parent’s identity graph without migration path"
+        ]
+      }
+    },
+    "grants_subsidies": {
+      "ranked_high_signal_events": [
+        { "rank": 1, "event_type": "roll-up acquisitions among advisory/database players", "why_high_signal": "Signals consolidation and pricing/coverage power." },
+        { "rank": 2, "event_type": "new government scheme launches/major rule changes affecting addressable market", "why_high_signal": "Directly changes demand." },
+        { "rank": 3, "event_type": "database/API product launch and partnerships with chambers/banks/industry bodies", "why_high_signal": "Scales distribution beyond services." },
+        { "rank": 4, "event_type": "enterprise wins (large corporates) or pan-EU coverage expansion", "why_high_signal": "Upmarket motion and defensibility." }
+      ],
+      "ranked_low_signal_events": [
+        { "rank": 1, "event_type": "thought leadership on sustainability funding without product/service change", "why_low_signal": "Content marketing." }
+      ],
+      "ideal_carveout_profile": {
+        "asset_type": "grant discovery database or sector-specialist advisory unit carved out from a general consultancy",
+        "size_preference": { "revenue_gbp": "3m–40m", "employee_range": "20–250" },
+        "geography_preference": ["Netherlands", "Benelux", "DACH", "Nordics"],
+        "product_lines_of_interest": ["subsidy alerts", "grant workflow tooling", "sector-specific expertise (energy/innovation)"],
+        "integration_constraints": [
+          "data licensing and update processes must be transferable",
+          "avoid heavy dependency on parent’s shared CRM/process stack"
+        ]
+      }
+    },
+    "fincrime_clm_kyc": {
+      "ranked_high_signal_events": [
+        { "rank": 1, "event_type": "Tier-1 bank wins / platform replacement decisions", "why_high_signal": "Large ACV + referenceability; shifts category leadership." },
+        { "rank": 2, "event_type": "M&A among CLM/KYC/IDV vendors or data providers", "why_high_signal": "Bundling changes competitive landscape." },
+        { "rank": 3, "event_type": "regulatory-driven capability launches (e.g., new screening/risk models)", "why_high_signal": "Creates urgency and switching triggers." },
+        { "rank": 4, "event_type": "major partnerships with screening/IDV/data providers", "why_high_signal": "Improves time-to-value and coverage." },
+        { "rank": 5, "event_type": "senior leadership changes (CEO/CPO/CRO)", "why_high_signal": "Strategic pivot, often GTM/enterprise refocus." }
+      ],
+      "ranked_low_signal_events": [
+        { "rank": 1, "event_type": "minor compliance blog posts", "why_low_signal": "No product/commercial impact." },
+        { "rank": 2, "event_type": "conference panels without announcements", "why_low_signal": "Noise." }
+      ],
+      "ideal_carveout_profile": {
+        "asset_type": "workflow/case management module, onboarding orchestration, or regional CLM business unit from broader fintech suite",
+        "size_preference": { "arr_gbp": "10m–120m", "employee_range": "80–800" },
+        "geography_preference": ["Europe", "UK", "Middle East (selective)", "North America (selective)"],
+        "product_lines_of_interest": ["KYC orchestration", "rules engine", "case management", "customer onboarding workflows"],
+        "integration_constraints": [
+          "must support auditability and model governance",
+          "data residency and secure deployment options",
+          "separation must preserve integrations (screening/IDV/sanctions lists) or provide swap plan"
+        ]
+      }
+    },
+    "utilities_customer_systems": {
+      "ranked_high_signal_events": [
+        { "rank": 1, "event_type": "utility/retailer platform wins, migrations, and go-lives", "why_high_signal": "Sticky multi-year revenue and referenceability." },
+        { "rank": 2, "event_type": "M&A in CIS/billing/retail energy platforms", "why_high_signal": "Consolidation changes RFP dynamics and bundling." },
+        { "rank": 3, "event_type": "regulatory change impacting billing/settlement/customer ops", "why_high_signal": "Creates mandatory demand and product gaps." },
+        { "rank": 4, "event_type": "major module launches (tariff mgmt, smart meter integration, analytics)", "why_high_signal": "Differentiation and expansion revenue." },
+        { "rank": 5, "event_type": "strategic partnerships (meter data, CRM ecosystems)", "why_high_signal": "Improves completeness and reduces implementation risk." }
+      ],
+      "ranked_low_signal_events": [
+        { "rank": 1, "event_type": "feature-level UI changes", "why_low_signal": "Not decision-driving." },
+        { "rank": 2, "event_type": "small consultancy partnerships", "why_low_signal": "Often non-exclusive and low impact." }
+      ],
+      "ideal_carveout_profile": {
+        "asset_type": "billing/CIS module suite or analytics add-on divested from larger utility IT portfolio",
+        "size_preference": { "arr_gbp": "8m–90m", "employee_range": "60–700" },
+        "geography_preference": ["UK", "Europe", "ANZ (selective)"],
+        "product_lines_of_interest": ["billing", "customer care", "tariff mgmt", "meter data integration", "analytics"],
+        "integration_constraints": [
+          "carve-outs are harder: require clean separation from shared delivery teams and hosted infrastructure",
+          "must preserve customer SLAs and regulatory compliance",
+          "implementation partner bench is critical"
+        ]
+      }
+    }
+  },
+  "portfolio_companies": [
+    {
+      "company_id": "kantar-xtel",
+      "name": "Kantar XTEL",
+      "sector_cluster": "cpg_tpm_rgm",
+      "core_thesis": "Owns a high-value control point in CPG trade spend and promotion effectiveness where ROI pressure drives platform adoption and consolidation. Scale + data advantage can create strong switching costs and expansion into broader RGM workflows.",
+      "current_strategic_priority": "Accelerate enterprise wins and deepen differentiation with AI-driven optimization while expanding ecosystem integrations (ERP, retailer data, SIs) to lock in distribution.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "TELUS Exceedra", "why": "Direct TPM/TPO competitor with large CPG footprint." },
+        { "rank": 2, "name": "Vistex", "why": "Trade/price/promo suite adjacency; competes in enterprise commercial planning." },
+        { "rank": 3, "name": "Oracle (Demantra / planning stack)", "why": "Suite bundling risk in large enterprises." },
+        { "rank": 4, "name": "UpClear", "why": "Trade promotion and commercial planning presence (Europe-heavy)." },
+        { "rank": 5, "name": "Blacksmith Applications", "why": "TPM-focused challenger; signals innovation in the category." }
+      ],
+      "ignore_sources": [
+        "promo/CPG marketing blogs without primary announcements",
+        "conference agendas without product or deal news",
+        "job postings unless they indicate major strategy shift"
+      ],
+      "ideal_carveout_profile_override": {
+        "product_lines_of_interest": [
+          "trade promotion optimization (standalone module)",
+          "promo analytics add-ons",
+          "retailer execution analytics"
+        ]
+      }
+    },
+    {
+      "company_id": "stepup-rgm",
+      "name": "StepUp RGM",
+      "sector_cluster": "cpg_tpm_rgm",
+      "core_thesis": "RGM analytics and advisory-to-software workflows are becoming a repeatable platform category as CPGs institutionalize price/promo/mix governance. A productized data/analytics engine can scale across brands and geographies with high expansion potential.",
+      "current_strategic_priority": "Productize repeatable RGM playbooks into software modules and attach to existing TPM footprints to drive upsell and retention.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "NielsenIQ (RGM / analytics)", "why": "Data + analytics authority influencing RGM decisions." },
+        { "rank": 2, "name": "Circana (IRI legacy)", "why": "Competes on syndicated insights and analytics workflows." },
+        { "rank": 3, "name": "Revionics (Aptos)", "why": "Pricing optimization adjacency; often evaluated in RGM programs." },
+        { "rank": 4, "name": "Pricefx", "why": "Pricing platform competitor; can expand into adjacent RGM use cases." },
+        { "rank": 5, "name": "Zilliant", "why": "Price optimization + guidance; adjacent RGM positioning." }
+      ],
+      "ignore_sources": [
+        "generic pricing newsletters without company-specific moves",
+        "vendor case studies with no verifiable customer/contract detail"
+      ],
+      "ideal_carveout_profile_override": {
+        "asset_type": "pricing/promo analytics module inside a broader planning suite"
+      }
+    },
+    {
+      "company_id": "thesis",
+      "name": "Thesis",
+      "sector_cluster": "higher_ed_sis",
+      "core_thesis": "SIS is a mission-critical system of record with high switching costs; buyers migrate infrequently but spend heavily when they do. A modern cloud SIS can win replacement cycles and expand into adjacent campus workflows.",
+      "current_strategic_priority": "Win replacements by proving low-risk migration + compliance reporting, and expand implementation capacity via partners to accelerate deployments.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "Tribal (SITS)", "why": "Strong UK footprint; direct competitor in UK HE." },
+        { "rank": 2, "name": "Ellucian", "why": "Global SIS incumbent; sets category expectations." },
+        { "rank": 3, "name": "Workday Student", "why": "Suite pull-through risk in institutions adopting Workday." },
+        { "rank": 4, "name": "Anthology Student", "why": "Installed base and suite adjacency." },
+        { "rank": 5, "name": "Oracle PeopleSoft Campus Solutions", "why": "Legacy incumbent in large institutions; replacement cycles trigger wins/losses." }
+      ],
+      "ignore_sources": [
+        "campus lifestyle media",
+        "student experience blogs without IT/procurement detail"
+      ],
+      "ideal_carveout_profile_override": {
+        "geography_preference": ["UK", "Ireland", "Canada"],
+        "integration_constraints": [
+          "must have proven migration tooling and reference go-lives",
+          "public sector procurement compliance is a plus"
+        ]
+      }
+    },
+    {
+      "company_id": "orbus-software",
+      "name": "Orbus Software",
+      "sector_cluster": "enterprise_architecture",
+      "core_thesis": "Enterprise architecture platforms become embedded in governance and transformation programs, driving durable renewals and expansion. Microsoft-aligned distribution can create a strong channel moat and enterprise land-and-expand dynamics.",
+      "current_strategic_priority": "Strengthen Microsoft co-sell/channel, push AI-assisted productivity features, and secure flagship enterprise wins in regulated sectors.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "LeanIX (SAP)", "why": "Category leader momentum; suite bundling and SAP adjacency." },
+        { "rank": 2, "name": "Bizzdesign", "why": "Direct EA competitor with enterprise focus." },
+        { "rank": 3, "name": "Ardoq", "why": "Modern EA platform with strong product narrative." },
+        { "rank": 4, "name": "BOC Group (ADOIT)", "why": "Enterprise EA incumbent in Europe." },
+        { "rank": 5, "name": "Software AG Alfabet", "why": "EA/APM incumbent; consolidation and suite evolution signals." }
+      ],
+      "ignore_sources": [
+        "architecture community posts without commercial impact",
+        "template/diagram packs marketed as announcements"
+      ],
+      "ideal_carveout_profile_override": {
+        "product_lines_of_interest": ["EA modeling", "APM", "roadmapping automation"],
+        "integration_constraints": ["SSO/SCIM readiness required", "exportable models required"]
+      }
+    },
+    {
+      "company_id": "salesmanago",
+      "name": "SALESmanago",
+      "sector_cluster": "marketing_automation_cdp",
+      "core_thesis": "Lifecycle marketing platforms sit on recurring retention budgets and can compound value via personalization and channel expansion. Winners gain leverage through commerce integrations, agency channels, and data-driven ROI proof.",
+      "current_strategic_priority": "Differentiate with AI personalization and deepen commerce ecosystem partnerships to drive mid-market to enterprise expansion.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "Klaviyo", "why": "Dominant SMB/mid-market lifecycle platform with strong commerce ties." },
+        { "rank": 2, "name": "HubSpot", "why": "Suite bundling risk; expands down/up market." },
+        { "rank": 3, "name": "Braze", "why": "Enterprise customer engagement leader; sets orchestration bar." },
+        { "rank": 4, "name": "SAP Emarsys", "why": "Enterprise suite competitor; commerce + ERP adjacency." },
+        { "rank": 5, "name": "Bloomreach", "why": "Personalization/CDP adjacency; competes in eCommerce stack." }
+      ],
+      "ignore_sources": [
+        "affiliate 'best email tools' lists",
+        "vendor guest posts in martech blogs without primary announcements"
+      ],
+      "ideal_carveout_profile_override": {
+        "product_lines_of_interest": ["personalization engine", "CDP activation module", "agency channel platform tooling"]
+      }
+    },
+    {
+      "company_id": "vindsubsidies",
+      "name": "Vindsubsidies",
+      "sector_cluster": "grants_subsidies",
+      "core_thesis": "Grant/subsidy advisory plus a scalable database product can create a defensible intelligence + workflow moat, particularly in complex EU schemes. Consolidation can create coverage breadth and pricing power.",
+      "current_strategic_priority": "Scale database-led recurring revenue and expand scheme coverage/automation while continuing selective roll-up of specialist advisory boutiques.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "PNO Innovation (PNO Consultants)", "why": "Major EU innovation incentives player; overlaps advisory + tooling." },
+        { "rank": 2, "name": "Big 4 innovation incentives practices", "why": "Compete for large enterprises; signal market pricing and demand." },
+        { "rank": 3, "name": "Grant Thornton (innovation/subsidy advisory)", "why": "Mid-market competitor with credibility and distribution." },
+        { "rank": 4, "name": "Berenschot (funding advisory)", "why": "NL advisory overlap in relevant schemes." }
+      ],
+      "ignore_sources": [
+        "government PR pages unless they change rules/eligibility materially",
+        "SME blogs summarizing schemes without official detail"
+      ],
+      "ideal_carveout_profile_override": {
+        "asset_type": "grant database + alerting product line",
+        "integration_constraints": ["data licensing and refresh process must transfer cleanly"]
+      }
+    },
+    {
+      "company_id": "fenergo",
+      "name": "Fenergo",
+      "sector_cluster": "fincrime_clm_kyc",
+      "core_thesis": "KYC/CLM platforms are mission-critical in regulated finance with high switching costs and long-term contracts. Category leaders win via breadth (workflow + rules + integrations) and trusted deployments at tier-1 institutions.",
+      "current_strategic_priority": "Defend/expand tier-1 footprint, accelerate time-to-value via packaged integrations, and lead narrative on AI-assisted compliance operations with auditability.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "Pega (CLM/KYC workflows)", "why": "Platform competitor with deep enterprise workflow footprint." },
+        { "rank": 2, "name": "Appway", "why": "CLM/onboarding competitor in financial institutions." },
+        { "rank": 3, "name": "Encompass Corporation", "why": "KYC data orchestration competitor; strong positioning." },
+        { "rank": 4, "name": "ComplyAdvantage", "why": "Fincrime data/screening adjacency; partnership or competition risk." },
+        { "rank": 5, "name": "LexisNexis Risk Solutions", "why": "Data + screening gravity that shapes platform choice." }
+      ],
+      "ignore_sources": [
+        "generic AML commentary sites without product/commercial announcements",
+        "vendor-only case studies without named institutions"
+      ],
+      "ideal_carveout_profile_override": {
+        "candidate_assets_or_modules": ["case management", "rules engine", "onboarding workflow accelerators"],
+        "integration_constraints": ["audit trails must remain intact post-separation"]
+      }
+    },
+    {
+      "company_id": "agility-cis",
+      "name": "Agility CIS",
+      "sector_cluster": "utilities_customer_systems",
+      "core_thesis": "Utilities customer systems (billing/CIS/CRM) are sticky, long-duration platforms with meaningful expansion via modules and analytics. Vendors win on implementation reliability, regulatory fitness, and migration tooling.",
+      "current_strategic_priority": "Drive migrations and land larger utilities by proving delivery track record and reducing implementation risk; expand analytics and modular attach rates.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "Gentrack", "why": "Strong utilities platform competitor; frequent RFP participant." },
+        { "rank": 2, "name": "Hansen Technologies", "why": "Billing/CIS incumbent with broad suite." },
+        { "rank": 3, "name": "Oracle Utilities", "why": "Enterprise suite pull-through in large utilities." },
+        { "rank": 4, "name": "Kraken Technologies", "why": "Modern platform narrative, especially in retail energy." }
+      ],
+      "ignore_sources": [
+        "utility vendor marketing blogs with no contract/go-live detail",
+        "minor UI release notes"
+      ],
+      "ideal_carveout_profile_override": {
+        "estimated_time_to_separate_months": "9–24",
+        "integration_constraints": ["must maintain customer SLAs during transition", "delivery team transfer plan required"]
+      }
+    },
+    {
+      "company_id": "tally-group",
+      "name": "Tally Group",
+      "sector_cluster": "utilities_customer_systems",
+      "core_thesis": "Retail energy/utility SaaS platforms can compound through module expansion and analytics while benefiting from market complexity and regulatory-driven change. Consolidation creates suite advantages and durable multi-year contracts.",
+      "current_strategic_priority": "Win platform consolidations and expand module suite (analytics, tariffs, ops tooling) while building repeatable migration playbooks.",
+      "must_monitor_competitors": [
+        { "rank": 1, "name": "Kraken Technologies", "why": "High-profile platform with strong adoption narrative." },
+        { "rank": 2, "name": "Gentrack", "why": "Direct competitor in utilities/retail energy platforms." },
+        { "rank": 3, "name": "Hansen Technologies", "why": "Suite competitor; active M&A historically." },
+        { "rank": 4, "name": "Oracle Utilities", "why": "Enterprise suite alternative." },
+        { "rank": 5, "name": "Salesforce Energy & Utilities Cloud", "why": "CRM-led suite pull-through; partner ecosystem affects deals." }
+      ],
+      "ignore_sources": [
+        "general energy news not tied to platforms/regulation/customer ops",
+        "vendor blogs without verifiable customer impacts"
+      ],
+      "ideal_carveout_profile_override": {
+        "candidate_assets_or_modules": ["analytics add-ons", "tariff management tools", "customer comms tooling"],
+        "estimated_complexity": "high"
+      }
+    }
+  ],
+  "llm_prompt_context_improvements": {
+    "minimum_context_to_add_per_company": [
+      "top 3 ICP segments (by size and geography)",
+      "top 3 differentiators (product/implementation/channel)",
+      "top 3 active GTM motions (partners/SIs/platform ecosystems)",
+      "top 3 strategic risks (suite bundling, churn vectors, regulatory risk, delivery capacity)",
+      "known 'must-watch' acquirers (strategics + PE platforms) in the category"
+    ],
+    "event_scoring_rubric": {
+      "base_score_by_event_type": {
+        "acquisition_merger": 90,
+        "funding_round": 80,
+        "major_contract_win": 80,
+        "go_live_migration": 80,
+        "executive_change_ceo_cpo_cro": 70,
+        "major_product_launch": 70,
+        "strategic_partnership_distribution": 70,
+        "regulatory_change_direct_product_impact": 80,
+        "minor_product_update": 30,
+        "award_or_ranking": 20,
+        "webinar_or_event": 10,
+        "hiring_non_exec": 20
+      },
+      "adjustments": {
+        "if_source_is_primary": "+10",
+        "if_named_tier1_customer": "+10",
+        "if_deal_value_disclosed_and_material": "+10",
+        "if_competitor_direct_overlap": "+10",
+        "if_only_rumor_unconfirmed": "-20",
+        "if_duplicate_or_repost": "-30"
+      }
+    },
+    "carveout_prompt_additions": [
+      "Ask explicitly: 'Which division/product line/geography is most likely non-core to the buyer/seller and why?'",
+      "Force a separation feasibility checklist: data, people, contracts, infra, customer comms, regulatory, and delivery obligations",
+      "Require a 'what would SilverTree do with it' one-liner: bolt-on, platform add-on, or stand-alone carve-out"
+    ],
+    "recommended_output_schema_for_each_news_item": {
+      "required_fields": [
+        "headline",
+        "company_or_competitor",
+        "event_type",
+        "date",
+        "source_name",
+        "source_url",
+        "one_sentence_summary",
+        "why_it_matters_to_silvertree",
+        "portfolio_impact_vector",
+        "relevance_score_1_to_10",
+        "carveout_flag",
+        "carveout_candidate_assets",
+        "carveout_complexity_low_med_high",
+        "confidence_low_med_high"
+      ],
+      "portfolio_impact_vector_examples": [
+        "competitive_threat",
+        "competitive_tailwind",
+        "pricing_pressure",
+        "distribution_shift",
+        "product_gap_or_leapfrog",
+        "consolidation_signal",
+        "potential_addon",
+        "potential_carveout"
+      ]
+    },
+    "testing_metrics_suggestions": {
+      "precision_proxy": "share of items that Romil marks as 'useful' after review",
+      "coverage_proxy": "count of true positives found vs a manual benchmark week",
+      "latency": "time from publication to inclusion (hours)",
+      "dedupe_rate": "duplicates removed / total collected",
+      "false_positive_rate": "items dropped after human review / items sent"
+    }
+  }
+}

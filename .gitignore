@@ -1,0 +1,70 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment variables - CRITICAL: Contains API keys
+.env
+.env.local
+.env.*.local
+*.env
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# mypy
+.mypy_cache/
+
+# ruff
+.ruff_cache/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+*.DS_Store
+
+# Data outputs - newsletter results and collected data
+data/news_results/*.html
+data/news_results/*.json
+data/news_results/
+
+# Claude AI plans (optional, for privacy)
+.claude/
