@@ -18,6 +18,7 @@ from silvertree_newsletter.config import settings
 from silvertree_newsletter.services.rss_collector import RSSCollector
 from silvertree_newsletter.services.perplexity import PerplexityClient
 from silvertree_newsletter.services.content_fetcher import ContentFetcher
+from silvertree_newsletter.services.email_sender import SmtpEmailSender
 from silvertree_newsletter.agents.triage_agent import TriageAgent
 from silvertree_newsletter.agents.analysis_agent import AnalysisAgent
 from silvertree_newsletter.agents.email_composer import EmailComposerAgent
@@ -67,6 +68,13 @@ def _limit_queries_by_type(queries: list, limit: int) -> list:
     if len(limited) < len(queries):
         logger.info(f"Limiting queries per type to {limit}: {len(limited)}/{len(queries)} kept")
     return limited
+
+
+def _split_emails(value: str) -> list[str]:
+    if not value:
+        return []
+    cleaned = value.replace(";", ",")
+    return [email.strip() for email in cleaned.split(",") if email.strip()]
 
 
 # =============================================================================
@@ -770,4 +778,90 @@ def save_output_node(state: NewsletterState) -> dict:
 
     return {
         "metrics": {**state.get("metrics", {}), "output_path": str(html_path)},
+    }
+
+
+# =============================================================================
+# NODE: SEND EMAIL
+# =============================================================================
+
+def send_email_node(state: NewsletterState) -> dict:
+    """Send the newsletter email via SMTP when enabled."""
+    if not settings.send_email:
+        logger.info("Email sending disabled; skipping.")
+        return {
+            "metrics": {**state.get("metrics", {}), "email_status": "skipped"},
+        }
+
+    newsletter = state.get("newsletter")
+    html = state.get("newsletter_html", "")
+    if not newsletter or not html:
+        error = "Email sending skipped: newsletter content missing."
+        logger.warning(error)
+        return {
+            "errors": [*state.get("errors", []), error],
+            "metrics": {**state.get("metrics", {}), "email_status": "skipped"},
+        }
+
+    from_email = settings.from_email.strip()
+    to_emails = _split_emails(settings.to_email)
+    if not from_email or not to_emails:
+        error = "Email sending skipped: FROM_EMAIL or TO_EMAIL not configured."
+        logger.warning(error)
+        return {
+            "errors": [*state.get("errors", []), error],
+            "metrics": {**state.get("metrics", {}), "email_status": "skipped"},
+        }
+
+    if not settings.smtp_username or not settings.smtp_password:
+        error = "Email sending skipped: SMTP credentials not configured."
+        logger.warning(error)
+        return {
+            "errors": [*state.get("errors", []), error],
+            "metrics": {**state.get("metrics", {}), "email_status": "skipped"},
+        }
+
+    sender = SmtpEmailSender(
+        host=settings.smtp_host,
+        port=settings.smtp_port,
+        username=settings.smtp_username,
+        password=settings.smtp_password,
+        use_tls=settings.smtp_use_tls,
+        use_ssl=settings.smtp_use_ssl,
+        timeout_seconds=settings.smtp_timeout_seconds,
+    )
+
+    result = sender.send_html(
+        subject=newsletter.subject,
+        html=html,
+        from_email=from_email,
+        to_emails=to_emails,
+    )
+
+    if result.success:
+        logger.info(
+            "Email sent",
+            extra={
+                "recipients": len(to_emails),
+                "message_id": result.message_id,
+            },
+        )
+        return {
+            "metrics": {
+                **state.get("metrics", {}),
+                "email_status": "sent",
+                "email_message_id": result.message_id,
+                "email_recipients": len(to_emails),
+            },
+        }
+
+    error = f"Email send failed: {result.error or 'unknown error'}"
+    logger.error(error)
+    return {
+        "errors": [*state.get("errors", []), error],
+        "metrics": {
+            **state.get("metrics", {}),
+            "email_status": "failed",
+            "email_error": result.error or "unknown error",
+        },
     }

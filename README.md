@@ -12,7 +12,7 @@ This tool continuously monitors market activity relevant to SilverTree Equity po
 - **Multi-Source News Collection**: Aggregates from industry RSS feeds and Perplexity search (including GP Bullhound via domain filtering)
 - **AI-Powered Analysis**: Uses LLMs to analyze relevance and impact of news items
 - **Carve-out Detection**: Automatically identifies potential carve-out opportunities from M&A deals
-- **Weekly Newsletter**: Generates comprehensive weekly summaries (email sending TBD)
+- **Weekly Newsletter**: Generates comprehensive weekly summaries and emails via SMTP (Gmail)
 
 ## Setup
 
@@ -38,23 +38,62 @@ cp .env.example .env
 python -m silvertree_newsletter.main
 ```
 
+To send an existing HTML file (test without running the pipeline):
+```bash
+python -m silvertree_newsletter.send_email data/news_results/newsletter_YYYYMMDD_HHMMSS.html
+```
+
 ## Configuration
 
 Configure the application via environment variables in `.env`:
 
 - `GEMINI_API_KEY`: LLM provider API key (Gemini)
-- `SENDGRID_API_KEY`: For sending emails
-- `TO_EMAIL`: Newsletter recipient email
+- `SEND_EMAIL`: Enable/disable SMTP email sending
+- `FROM_EMAIL`: Sender email (Gmail)
+- `TO_EMAIL`: Newsletter recipient email(s), comma-separated
+- `SMTP_USERNAME` / `SMTP_PASSWORD`: Gmail SMTP credentials (app password recommended)
+- `SMTP_HOST` / `SMTP_PORT`: SMTP server connection settings
+- `SMTP_USE_TLS`: Enable STARTTLS (recommended)
 - `PERPLEXITY_API_KEY`: For search aggregation
 - `SOURCES_CATALOG_PATH`: Unified source list (RSS + domains)
 - See `.env.example` for all options
+
+### Email Configuration (Gmail)
+
+To send newsletters via Gmail, you need to configure SMTP with an **App Password**:
+
+1. **Enable 2-Factor Authentication**:
+   - Go to https://myaccount.google.com/security
+   - Enable 2-Step Verification if not already enabled
+
+2. **Generate Gmail App Password**:
+   - Go to https://myaccount.google.com/apppasswords
+   - Select "Mail" as the app
+   - Select "Other" as the device and name it "SilverTree Newsletter"
+   - Click "Generate"
+   - Copy the 16-character password (e.g., `abcd efgh ijkl mnop`)
+
+3. **Update `.env` file**:
+   ```bash
+   SEND_EMAIL=true
+   FROM_EMAIL=your-email@gmail.com
+   TO_EMAIL=recipient@example.com
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your-email@gmail.com
+   SMTP_PASSWORD=abcdefghijklmnop  # 16-character App Password (no spaces)
+   SMTP_USE_TLS=true
+   SMTP_USE_SSL=false
+   ```
+
+**Note**: The system uses `certifi` for SSL certificate verification to ensure secure SMTP connections work correctly on all platforms (especially macOS).
 
 ## Architecture
 
 Built with:
 - **LangGraph**: Workflow orchestration
 - **Pydantic**: Data validation and settings
-- **SendGrid**: Email delivery
+- **SMTP (Gmail)**: Email delivery
 
 ## Workflow
 
@@ -65,7 +104,7 @@ Built with:
 5. Analyze news for relevance and impact
 6. Detect carve-out opportunities
 7. Generate newsletter content
-8. Send email via SendGrid (future)
+8. Send email via SMTP (Gmail)
 
 ## Development
 

@@ -24,9 +24,16 @@ class Settings(BaseSettings):
     dedupe_model: str = ""
 
     # Email Configuration
-    sendgrid_api_key: str = ""
     from_email: str = "newsletter@silvertree-equity.com"
     to_email: str = "romil@silvertree-equity.com"
+    send_email: bool = False
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
+    smtp_timeout_seconds: float = 30.0
 
     # Scheduling
     newsletter_day: str = "monday"  # Day of week to send newsletter

@@ -32,7 +32,7 @@ The SilverTree Market Intelligence System is an automated pipeline that monitors
 | **Automated News Collection** | Aggregates news from 7 RSS feeds + AI-powered web search |
 | **Intelligent Triage** | LLM-driven categorization and relevance scoring |
 | **Deep Analysis** | PE-grade strategic analysis with carve-out screening |
-| **Automated Reporting** | Weekly HTML newsletter delivered via SendGrid |
+| **Automated Reporting** | Weekly HTML newsletter delivered via SMTP (Gmail) |
 
 ### Coverage Metrics
 
@@ -68,7 +68,7 @@ The SilverTree Market Intelligence System is an automated pipeline that monitors
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    OUTPUT LAYER                                     │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────┐  │
-│  │ Email Composer  │→ │  HTML Template  │→ │  SendGrid Delivery  │  │
+│  │ Email Composer  │→ │  HTML Template  │→ │   SMTP Delivery    │  │
 │  │     Agent       │  │   Generation    │  │                     │  │
 │  └─────────────────┘  └─────────────────┘  └─────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
@@ -97,7 +97,7 @@ Manual monitoring across 8 portfolio companies and 75+ competitors is not scalab
 | **LLM Provider** | Google Gemini | Triage, analysis, composition agents |
 | **Search API** | Perplexity AI | AI-powered news discovery |
 | **Data Validation** | Pydantic | Type-safe data models |
-| **Email Delivery** | SendGrid | Newsletter distribution |
+| **Email Delivery** | SMTP (Gmail) | Newsletter distribution |
 | **Async HTTP** | httpx | Parallel content fetching |
 | **RSS Parsing** | feedparser | Industry news feeds |
 | **Logging** | structlog | Structured observability |
@@ -329,8 +329,8 @@ The system is implemented as a LangGraph state machine with conditional routing:
 - JSON summary: `summary_YYYYMMDD_HHMMSS.json`
 
 **Email Delivery** (optional):
-- Provider: SendGrid
-- From: `newsletter@silvertree-equity.com`
+- Provider: SMTP (Gmail)
+- From: Configured sender address (Gmail)
 - To: Configured recipients
 
 ---
@@ -491,9 +491,15 @@ All agents receive:
 |----------|---------|---------|
 | `GEMINI_API_KEY` | LLM provider authentication | Required |
 | `PERPLEXITY_API_KEY` | Search API authentication | Required |
-| `SENDGRID_API_KEY` | Email delivery | Optional |
-| `SENDGRID_FROM_EMAIL` | Newsletter sender address | `newsletter@silvertree-equity.com` |
-| `SENDGRID_TO_EMAIL` | Recipients | `romil@silvertree-equity.com` |
+| `SEND_EMAIL` | Enable SMTP delivery | `false` |
+| `FROM_EMAIL` | Newsletter sender address | `newsletter@silvertree-equity.com` |
+| `TO_EMAIL` | Recipients (comma-separated) | `romil@silvertree-equity.com` |
+| `SMTP_HOST` | SMTP server hostname | `smtp.gmail.com` |
+| `SMTP_PORT` | SMTP port | `587` |
+| `SMTP_USERNAME` | SMTP username | Required |
+| `SMTP_PASSWORD` | SMTP password (app password) | Required |
+| `SMTP_USE_TLS` | Use STARTTLS | `true` |
+| `SMTP_USE_SSL` | Use SSL | `false` |
 
 ### 6.2 Tunable Parameters
 
@@ -560,7 +566,7 @@ pydantic>=2.0             # Data validation
 httpx>=0.25               # Async HTTP client
 feedparser>=6.0           # RSS parsing
 structlog>=23.0           # Structured logging
-sendgrid>=6.0             # Email delivery (optional)
+smtplib (stdlib)          # SMTP email delivery
 ```
 
 ### 7.2 API Integrations

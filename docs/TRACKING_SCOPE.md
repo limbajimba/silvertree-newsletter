@@ -490,7 +490,7 @@ ucisa.ac.uk          gartner.com
 |---------|---------|------------|
 | **Perplexity AI** | News search and discovery | sonar (Tier 0/1: 50 RPM) |
 | **Google Gemini** | LLM for analysis/triage | gemini-2.5-flash/pro |
-| **SendGrid** | Email newsletter delivery | Standard API |
+| **SMTP (Gmail)** | Email newsletter delivery | App password |
 
 ---
 

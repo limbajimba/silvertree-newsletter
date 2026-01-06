@@ -1,7 +1,7 @@
 """LangGraph workflow definition for the newsletter pipeline.
 
 Pipeline:
-    Initialize → Collect (RSS + Search) → Triage → Dedupe → Fetch Full Content → Analyze → Curate → Compose → Save
+    Initialize → Collect (RSS + Search) → Triage → Dedupe → Fetch Full Content → Analyze → Curate → Compose → Save → Send
 
 Uses LangGraph for:
 - State management between nodes
@@ -28,6 +28,7 @@ from silvertree_newsletter.workflow.nodes import (
     curate_node,
     compose_node,
     save_output_node,
+    send_email_node,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,10 +68,12 @@ def create_newsletter_graph() -> StateGraph:
          curate                    │
            ↓                       │
         compose ←──────────────────┘
-           ↓
+          ↓
          save
-           ↓
-          END
+          ↓
+       send_email
+          ↓
+         END
     """
     # Create the graph
     graph = StateGraph(NewsletterState)
@@ -86,6 +89,7 @@ def create_newsletter_graph() -> StateGraph:
     graph.add_node("curate", curate_node)
     graph.add_node("compose", compose_node)
     graph.add_node("save", save_output_node)
+    graph.add_node("send_email", send_email_node)
 
     # Define edges
     graph.set_entry_point("initialize")
@@ -111,7 +115,8 @@ def create_newsletter_graph() -> StateGraph:
     graph.add_edge("analyze", "curate")
     graph.add_edge("curate", "compose")
     graph.add_edge("compose", "save")
-    graph.add_edge("save", END)
+    graph.add_edge("save", "send_email")
+    graph.add_edge("send_email", END)
 
     return graph
 

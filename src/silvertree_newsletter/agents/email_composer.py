@@ -116,7 +116,8 @@ Output JSON only with this schema:
 CARVE_OUT_MERGE_PROMPT = """You are deduplicating carve-out opportunities for a private equity newsletter.
 
 Merge entries that refer to the same underlying deal or target company.
-Keep the output concise and high-signal. Do NOT invent facts.
+Keep the output high-signal, but preserve the full strategic fit rationale from inputs.
+Do NOT invent facts or truncate rationale.
 
 Output JSON only as a list with this schema:
 [
@@ -126,7 +127,7 @@ Output JSON only as a list with this schema:
     "target_company": "string",
     "potential_units": ["unit1", "unit2"],
     "priority": "high" | "medium",
-    "strategic_fit_rationale": "1-2 sentences",
+    "strategic_fit_rationale": "Full rationale, may be multiple sentences",
     "recommended_action": "string"
   }
 ]
@@ -842,7 +843,7 @@ class EmailComposerAgent:
                 <div class="carveout-item priority-{co.priority}">
                     <strong>{co.target_company}</strong>
                     <p><strong>Potential Units:</strong> {', '.join(co.potential_units)}</p>
-                    <p><strong>Strategic Fit:</strong> {co.strategic_fit_rationale[:300]}...</p>
+                    <p><strong>Strategic Fit:</strong> {co.strategic_fit_rationale}</p>
                     <p><strong>Source:</strong> {source_link} ({source_label}){extra_sources}</p>
                     <p><strong>Action:</strong> {co.recommended_action}</p>
                 </div>
@@ -1103,13 +1104,23 @@ def _apply_carve_out_merge(
             raw_units + [unit for co in group for unit in co.potential_units]
         )
 
+        rationale_input = _coerce_text(entry.get("strategic_fit_rationale"))
+        rationale_best = max(
+            (co.strategic_fit_rationale for co in group if co.strategic_fit_rationale),
+            key=len,
+            default="",
+        )
+        rationale = rationale_input or rationale_best or primary.strategic_fit_rationale
+        if rationale_input and rationale_best and len(rationale_best) > len(rationale_input):
+            rationale = rationale_best
+
         merged.append(
             CarveOutOpportunity(
                 source_item=primary.source_item,
                 source_items=source_items,
                 target_company=_coerce_text(entry.get("target_company")) or primary.target_company,
                 potential_units=potential_units or primary.potential_units,
-                strategic_fit_rationale=_coerce_text(entry.get("strategic_fit_rationale")) or primary.strategic_fit_rationale,
+                strategic_fit_rationale=rationale or primary.strategic_fit_rationale,
                 recommended_action=_coerce_text(entry.get("recommended_action")) or primary.recommended_action,
                 priority=priority,
             )
