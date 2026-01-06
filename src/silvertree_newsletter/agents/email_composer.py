@@ -116,8 +116,8 @@ Output JSON only with this schema:
 CARVE_OUT_MERGE_PROMPT = """You are deduplicating carve-out opportunities for a private equity newsletter.
 
 Merge entries that refer to the same underlying deal or target company.
-Keep the output high-signal, but preserve the full strategic fit rationale from inputs.
-Do NOT invent facts or truncate rationale.
+Keep the output high-signal and concise. Summarize strategic fit rationale to 1-2 sentences,
+avoid repetition, and do NOT invent facts. Limit potential units to 3-5 concise items.
 
 Output JSON only as a list with this schema:
 [
@@ -127,7 +127,7 @@ Output JSON only as a list with this schema:
     "target_company": "string",
     "potential_units": ["unit1", "unit2"],
     "priority": "high" | "medium",
-    "strategic_fit_rationale": "Full rationale, may be multiple sentences",
+    "strategic_fit_rationale": "Concise rationale, 1-2 sentences",
     "recommended_action": "string"
   }
 ]

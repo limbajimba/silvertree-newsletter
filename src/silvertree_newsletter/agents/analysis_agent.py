@@ -85,9 +85,9 @@ Use the full source content if provided; prefer it over the short summary when t
    - `n/a`: Not an M&A deal
 
    If potential exists, specify:
-   - Target units that could be carved out
-   - Why they might be available
-   - Strategic fit rationale for SilverTree
+   - Target units that could be carved out (max 3-5 items, concise noun phrases, no repetition)
+   - Why they might be available (tie to explicit evidence)
+   - Strategic fit rationale for SilverTree (1-2 sentences, <= 60 words, no repetition)
 
 6. **Signal Strength**:
    - Provide a `signal_score` (0-100) based on actionability and evidence.
