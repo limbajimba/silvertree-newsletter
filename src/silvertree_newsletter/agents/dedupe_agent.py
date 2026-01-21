@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Iterable
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
-import google.generativeai as genai
+from google import genai
 
 from silvertree_newsletter.workflow.state import RawNewsItem
 
@@ -48,8 +48,7 @@ class DedupeAgent:
 
     def __post_init__(self) -> None:
         if self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.client = genai.GenerativeModel(self.model)
+            self.client = genai.Client(api_key=self.api_key)
         else:
             self.client = None
 
@@ -130,7 +129,10 @@ class DedupeAgent:
             return None
 
         try:
-            response = self.client.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+            )
             result = _extract_json(response.text)
             keep_id = result.get("keep_id")
             if keep_id:
@@ -182,7 +184,10 @@ def _canonical_url(url: str) -> str:
     return urlunparse(parsed._replace(query=new_query))
 
 
-def _extract_json(text: str) -> dict:
+def _extract_json(text: str | None) -> dict:
+    if not text:
+        return {}
+
     cleaned = text.strip()
     if cleaned.startswith("```"):
         lines = cleaned.split("\n")

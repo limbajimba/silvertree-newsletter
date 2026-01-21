@@ -61,10 +61,12 @@ htmlcov/
 Thumbs.db
 *.DS_Store
 
-# Data outputs - newsletter results and collected data
-data/news_results/*.html
-data/news_results/*.json
+# Data outputs - newsletter results, checkpoints, and collected data
 data/news_results/
+data/checkpoints/
+data/*.html
+data/*.json
+data/*.pdf
 
 # Claude AI plans (optional, for privacy)
 .claude/

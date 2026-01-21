@@ -19,7 +19,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
-import google.generativeai as genai
+from google import genai
 
 from silvertree_newsletter.workflow.state import (
     RawNewsItem,
@@ -125,9 +125,7 @@ class TriageAgent:
     max_workers: int = 1
 
     def __post_init__(self) -> None:
-        genai.configure(api_key=self.api_key)
-        self.client = genai.GenerativeModel(self.model)
-        self._thread_local = threading.local()
+        self.client = genai.Client(api_key=self.api_key)
         self._rate_limiter = RateLimiter(self.requests_per_minute) if self.requests_per_minute else None
 
     def triage_item(self, item: RawNewsItem, item_context: str | None = None) -> TriagedItem:
@@ -137,7 +135,10 @@ class TriageAgent:
         try:
             if self._rate_limiter:
                 self._rate_limiter.wait()
-            response = self._get_client().generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+            )
             result = self._parse_response(response.text)
             return self._build_triaged_item(item, result)
         except Exception as e:
@@ -199,13 +200,6 @@ class TriageAgent:
             summary=item.summary[:500],  # Truncate for speed
         )
         return f"{system}\n\n{user}"
-
-    def _get_client(self):
-        client = getattr(self._thread_local, "client", None)
-        if client is None:
-            client = genai.GenerativeModel(self.model)
-            self._thread_local.client = client
-        return client
 
     def _parse_response(self, response_text: str) -> dict:
         """Parse JSON from LLM response."""

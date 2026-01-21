@@ -152,6 +152,7 @@ class NewsletterItem(BaseModel):
     deal_type: DealType
     portfolio_company: str | None = None
     cluster: str | None = None
+    competitor_relation: str | None = None
     signal_score: int = Field(default=50, ge=0, le=100)
     primary_date: datetime | None = None
     sources: list[SourceLink] = Field(default_factory=list)
@@ -218,6 +219,10 @@ class NewsletterState(TypedDict):
     # === ANALYSIS STAGE ===
     analyzed_items: list[AnalyzedItem]
     carve_out_opportunities: list[CarveOutOpportunity]
+    carve_out_research_report: str | None
+    carve_out_research_path: str | None
+    carve_out_research_pdf_path: str | None  # PDF dossier for email attachment
+    carve_out_deep_research_data: list[dict]  # Structured data from deep research
 
     # === COMPOSE STAGE ===
     newsletter: Newsletter | None

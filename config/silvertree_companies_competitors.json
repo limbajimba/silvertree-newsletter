@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-01-06T00:00:00Z",
+  "generated_at_utc": "2026-01-20T00:00:00Z",
   "owner": {
     "name": "SilverTree Equity",
     "portfolio_source": "https://www.silvertreeequity.com/portfolio/"
@@ -17,12 +17,14 @@
       },
       "canonical_competitors_seed": [
         "TELUS Exceedra",
-        "Oracle Demantra",
-        "SAP (TPM / planning ecosystem)",
-        "Vistex",
         "UpClear",
-        "Blacksmith Applications",
-        "Wiser Solutions"
+        "Visualfabriq",
+        "Promomash",
+        "Blueshift",
+        "Salesforce Consumer Goods Cloud",
+        "SAP TPM",
+        "Anaplan",
+        "NielsenIQ"
       ]
     },
     {
@@ -36,12 +38,13 @@
         "leadership": ["VP Product", "Head of Higher Education", "GM", "Managing Director"]
       },
       "canonical_competitors_seed": [
-        "Tribal SITS",
         "Ellucian",
         "Workday Student",
-        "Oracle PeopleSoft Campus Solutions",
-        "Anthology Student",
-        "Jenzabar"
+        "Tribal Group",
+        "Anthology",
+        "Jenzabar",
+        "Oracle Student Cloud",
+        "Unit4 Student Management"
       ]
     },
     {
@@ -55,12 +58,15 @@
         "leadership": ["CEO", "CTO", "Chief Architect", "VP Alliances"]
       },
       "canonical_competitors_seed": [
-        "LeanIX (SAP)",
-        "Bizzdesign",
-        "BOC Group ADOIT",
+        "LeanIX",
+        "BiZZdesign",
         "Ardoq",
-        "MEGA Hopex",
+        "Mega International",
+        "Sparx Systems",
+        "Planview",
+        "ServiceNow",
         "Software AG Alfabet",
+        "Broadcom Clarity",
         "Avolution Abacus"
       ]
     },
@@ -75,30 +81,43 @@
         "leadership": ["CEO", "CMO", "VP Partnerships", "Head of Product"]
       },
       "canonical_competitors_seed": [
-        "Bloomreach",
-        "HubSpot Marketing Hub",
         "Klaviyo",
-        "SAP Emarsys",
-        "Adobe Marketo Engage",
+        "Bloomreach",
+        "Brevo",
+        "Dotdigital",
+        "Emarsys",
+        "MoEngage",
+        "Insider",
+        "Omnisend",
+        "HubSpot Marketing Hub",
+        "ActiveCampaign",
         "Braze",
-        "ActiveCampaign"
+        "Salesforce Marketing Cloud",
+        "Adobe Marketo"
       ]
     },
     {
       "cluster_id": "grants_subsidies",
-      "name": "Grants/Subsidies Advisory + Grant Opportunity Databases (NL/EU)",
-      "what_it_is": "Advisory firms + databases that help companies find and apply for subsidies/grants; often sector- and scheme-specific.",
+      "name": "R&D Tax Credits + Innovation Funding Advisory + Grant Databases",
+      "what_it_is": "Advisory firms + tech platforms that help companies find and apply for R&D tax credits, innovation subsidies, and grants.",
       "search_keyword_buckets": {
-        "events": ["acquisition", "roll-up", "new product launch", "government scheme update"],
-        "product": ["subsidy database", "grant database", "funding advisory", "innovation incentives", "SDE++", "WBSO", "Horizon Europe"],
-        "commercial_signals": ["new portal", "API", "alerts product", "data partnership"],
-        "leadership": ["Managing Partner", "Head of Digital", "Commercial Director"]
+        "events": ["acquisition", "roll-up", "funding", "new product launch", "government scheme update"],
+        "product": ["R&D tax credit", "subsidy database", "grant database", "funding advisory", "innovation incentives", "SDE++", "WBSO", "Horizon Europe"],
+        "commercial_signals": ["new portal", "API", "alerts product", "data partnership", "AI-driven claims"],
+        "leadership": ["Managing Partner", "Head of Digital", "Commercial Director", "CEO"]
       },
       "canonical_competitors_seed": [
-        "PNO Innovation (PNO Consultants)",
-        "Berenschot (funding advisory)",
-        "Grant Thornton (NL innovation / subsidy advisory - practice area)",
-        "Big 4 innovation incentives practices"
+        "Innoscripta",
+        "Grantify",
+        "Leyton",
+        "Ayming",
+        "ForrestBrown",
+        "PNO Consultants",
+        "Boast.ai",
+        "Ryan Tax",
+        "Karmen",
+        "Easol",
+        "Big 4 R&D Tax Practices"
       ]
     },
     {
@@ -113,11 +132,13 @@
       },
       "canonical_competitors_seed": [
         "Pega CLM",
-        "Appway",
-        "Encompass Corporation",
-        "ComplyAdvantage",
-        "LexisNexis Risk Solutions",
-        "Verafin"
+        "nCino",
+        "Appian",
+        "Salesforce Financial Services Cloud",
+        "ServiceNow Financial Ops",
+        "NICE Actimize",
+        "Oracle OFSAA",
+        "iMeta"
       ]
     },
     {
@@ -131,73 +152,88 @@
         "leadership": ["CEO", "GM Utilities", "Head of Product", "VP Delivery"]
       },
       "canonical_competitors_seed": [
-        "Kraken Technologies",
         "Gentrack",
+        "Kraken Technologies",
         "Hansen Technologies",
         "Oracle Utilities",
-        "SAP IS-U ecosystem",
-        "Salesforce Energy & Utilities Cloud"
+        "SAP for Utilities",
+        "Salesforce Energy & Utilities Cloud",
+        "Fluence",
+        "SkyBill",
+        "Junifer"
+      ]
+    },
+    {
+      "cluster_id": "microsoft_dynamics_partners",
+      "name": "Microsoft Dynamics 365 Partners (ERP/CRM) - Mid-Market & Non-Profit",
+      "what_it_is": "Specialized Microsoft Solutions Partners (MSPs) delivering Dynamics 365 implementations for mid-market and non-profit sectors.",
+      "search_keyword_buckets": {
+        "events": ["acquisition", "partnership", "Microsoft award", "funding", "merger"],
+        "product": ["Dynamics 365", "Business Central", "CRM", "ERP", "non-profit CRM", "fund accounting"],
+        "commercial_signals": ["new practice area", "Microsoft partner status", "customer win", "expansion"],
+        "leadership": ["CEO", "Managing Director", "Practice Lead", "CTO"]
+      },
+      "canonical_competitors_seed": [
+        "HSO",
+        "Hitachi Solutions",
+        "Columbus Global",
+        "Incremental Group",
+        "Akita Intelligent Solutions",
+        "TSG",
+        "Blackbaud",
+        "Salesforce.org",
+        "Unit4",
+        "Sage Intacct",
+        "NetSuite"
       ]
     }
   ],
   "companies": [
     {
-      "company_id": "kantar-xtel",
-      "name": "Kantar XTEL",
-      "company_context": "AI-first revenue management platform focused on trade promotion management/optimization for CPG.",
-      "websites": ["https://xtech.ai/", "https://upg-cd-ne.kantar.com/campaigns/kantar-xtel/trade-promotion-management-and-optimisation"],
-      "sector": "Trade Promotion / Promotion Lifecycle + Analytics",
+      "company_id": "xtel",
+      "name": "XTEL",
+      "aliases": ["Kantar XTEL", "xtech.ai"],
+      "company_context": "AI-first revenue management platform focused on trade promotion management/optimization for CPG/FMCG brands.",
+      "websites": ["https://xtech.ai/"],
+      "sector": "Trade Promotion / Revenue Growth Management",
       "cluster_id": "cpg_tpm_rgm",
-      "competitors_candidate": [
+      "direct_competitors": [
         "TELUS Exceedra",
-        "Oracle Demantra",
-        "Vistex",
         "UpClear",
-        "Blacksmith Applications",
-        "Wiser Solutions"
+        "Visualfabriq",
+        "Promomash",
+        "Blueshift"
+      ],
+      "indirect_competitors": [
+        "Salesforce Consumer Goods Cloud",
+        "SAP TPM",
+        "Anaplan",
+        "NielsenIQ"
       ],
       "competitor_cluster_tags": ["TPM", "TPO", "trade spend", "promo ROI", "RGM"],
       "search_query_seeds": {
-        "company_terms": ["Kantar XTEL", "XTEL", "xtech.ai"],
+        "company_terms": ["XTEL", "Kantar XTEL", "xtech.ai"],
         "deal_terms": ["acquisition", "merger", "strategic partnership", "private equity", "funding"],
         "product_terms": ["trade promotion management", "trade promotion optimization", "promotion ROI", "revenue management platform"]
       }
     },
     {
-      "company_id": "stepup-rgm",
-      "name": "StepUp RGM",
-      "company_context": "Revenue Growth Management (RGM) software + big data solutions vendor (now combined/branded within Kantar XTEL).",
-      "websites": ["https://xtech.ai/", "http://www.stepupconsulting.eu"],
-      "sector": "Revenue Growth Management SaaS + Big Data",
-      "cluster_id": "cpg_tpm_rgm",
-      "competitors_candidate": [
-        "Pricefx",
-        "Zilliant",
-        "Vendavo",
-        "PROS",
-        "NielsenIQ (RGM / analytics services)"
-      ],
-      "competitor_cluster_tags": ["RGM", "pricing", "promo effectiveness", "trade terms", "assortment"],
-      "search_query_seeds": {
-        "company_terms": ["StepUp RGM", "StepUp Consulting", "Kantar XTEL StepUp"],
-        "deal_terms": ["acquisition", "merger", "strategic partnership", "funding"],
-        "product_terms": ["revenue growth management", "price pack architecture", "promo ROI", "trade profitability"]
-      }
-    },
-    {
       "company_id": "thesis",
       "name": "Thesis",
-      "company_context": "Cloud-based student information systems (SIS) for higher education (incl. UK/Canada offerings).",
+      "company_context": "Cloud-based student information systems (SIS) for higher education (UK/Canada/global).",
       "websites": ["https://www.thesiscloud.com/", "https://www.thesis.sm/"],
       "sector": "Student Information Management for Higher Education",
       "cluster_id": "higher_ed_sis",
-      "competitors_candidate": [
-        "Tribal SITS",
+      "direct_competitors": [
         "Ellucian",
         "Workday Student",
-        "Oracle PeopleSoft Campus Solutions",
-        "Anthology Student",
-        "Jenzabar"
+        "Tribal Group",
+        "Jenzabar",
+        "Anthology"
+      ],
+      "indirect_competitors": [
+        "Oracle Student Cloud",
+        "Unit4 Student Management"
       ],
       "competitor_cluster_tags": ["SIS", "student records", "university ERP", "statutory reporting"],
       "search_query_seeds": {
@@ -214,14 +250,19 @@
       "websites": ["https://www.orbussoftware.com/"],
       "sector": "Enterprise Architecture / Digital Transformation Platform",
       "cluster_id": "enterprise_architecture",
-      "competitors_candidate": [
-        "LeanIX (SAP)",
-        "Bizzdesign",
-        "BOC Group ADOIT",
+      "direct_competitors": [
+        "LeanIX",
+        "BiZZdesign",
         "Ardoq",
-        "MEGA Hopex",
-        "Avolution Abacus",
-        "Software AG Alfabet"
+        "Mega International",
+        "Sparx Systems"
+      ],
+      "indirect_competitors": [
+        "Planview",
+        "ServiceNow",
+        "Software AG Alfabet",
+        "Broadcom Clarity",
+        "Avolution Abacus"
       ],
       "competitor_cluster_tags": ["EA", "APM", "process modeling", "ArchiMate", "TOGAF"],
       "search_query_seeds": {
@@ -233,18 +274,26 @@
     {
       "company_id": "salesmanago",
       "name": "SALESmanago",
-      "company_context": "AI-powered lifecycle engagement / marketing automation platform for eCommerce personalization and omnichannel journeys.",
+      "company_context": "AI-powered lifecycle engagement / marketing automation platform for eCommerce personalization and omnichannel journeys. No-code focus.",
       "websites": ["https://www.salesmanago.com/"],
       "sector": "Marketing Automation + CDP",
       "cluster_id": "marketing_automation_cdp",
-      "competitors_candidate": [
-        "Bloomreach",
-        "HubSpot Marketing Hub",
+      "direct_competitors": [
         "Klaviyo",
-        "SAP Emarsys",
-        "Adobe Marketo Engage",
+        "Bloomreach",
+        "Brevo",
+        "Dotdigital",
+        "Emarsys",
+        "MoEngage",
+        "Insider",
+        "Omnisend"
+      ],
+      "indirect_competitors": [
+        "HubSpot Marketing Hub",
+        "ActiveCampaign",
         "Braze",
-        "ActiveCampaign"
+        "Salesforce Marketing Cloud",
+        "Adobe Marketo"
       ],
       "competitor_cluster_tags": ["marketing automation", "CDP", "personalization", "eCommerce"],
       "search_query_seeds": {
@@ -254,40 +303,55 @@
       }
     },
     {
-      "company_id": "vindsubsidies",
-      "name": "Vindsubsidies",
-      "company_context": "One of the largest grants/subsidies advisory firms in the Netherlands; also operates a subsidy database + digital services.",
-      "websites": ["https://www.vindsubsidies.nl/en/"],
-      "sector": "Grant/Subsidy Advisory + Database",
+      "company_id": "ignite-group",
+      "name": "Ignite Group",
+      "aliases": ["Vindsubsidies", "vindsubsidies.nl"],
+      "company_context": "Technology-enabled R&D tax credit advisory and grant management. One of the largest grants/subsidies advisory firms in the Netherlands.",
+      "websites": ["https://www.vindsubsidies.nl/en/", "https://www.ignitegroup.com/"],
+      "sector": "R&D Tax Credit Advisory + Grant Database",
       "cluster_id": "grants_subsidies",
       "related_entities_to_monitor": ["Dorucon", "De Breed & Partners", "Raaf", "Trias", "Knippenborg", "Boonstoppel"],
-      "competitors_candidate": [
-        "PNO Innovation (PNO Consultants)",
-        "Berenschot (funding advisory)",
-        "Grant Thornton (NL innovation / subsidy advisory - practice area)",
-        "Big 4 innovation incentives practices"
+      "direct_competitors": [
+        "Innoscripta",
+        "Grantify",
+        "Boast.ai",
+        "Karmen",
+        "Easol"
       ],
-      "competitor_cluster_tags": ["subsidy database", "grant advisory", "innovation incentives", "NL/EU schemes"],
+      "indirect_competitors": [
+        "Leyton",
+        "Ayming",
+        "ForrestBrown",
+        "PNO Consultants",
+        "Ryan Tax",
+        "Big 4 R&D Tax Practices"
+      ],
+      "competitor_cluster_tags": ["R&D tax credit", "subsidy database", "grant advisory", "innovation incentives", "NL/EU schemes"],
       "search_query_seeds": {
-        "company_terms": ["Vindsubsidies", "vindsubsidies.nl", "subsidy database"],
-        "deal_terms": ["acquisition", "roll-up", "strategic partnership"],
-        "product_terms": ["grant database", "subsidy alerts", "innovation funding", "SDE++", "WBSO", "Horizon Europe"]
+        "company_terms": ["Ignite Group", "Vindsubsidies", "vindsubsidies.nl"],
+        "deal_terms": ["acquisition", "roll-up", "strategic partnership", "funding"],
+        "product_terms": ["R&D tax credit", "grant database", "subsidy alerts", "innovation funding", "SDE++", "WBSO", "Horizon Europe"]
       }
     },
     {
       "company_id": "fenergo",
       "name": "Fenergo",
+      "ownership_note": "VERIFY OWNERSHIP: Research indicates Fenergo was acquired by Astorg/Bridgepoint in 2021. Confirm if still in SilverTree portfolio.",
       "company_context": "CLM + financial crime operating platform for onboarding, KYC/AML rules, screening/IDV and lifecycle management in financial institutions.",
       "websites": ["https://www.fenergo.com/"],
       "sector": "KYC + Client Lifecycle Management",
       "cluster_id": "fincrime_clm_kyc",
-      "competitors_candidate": [
+      "direct_competitors": [
         "Pega CLM",
-        "Appway",
-        "Encompass Corporation",
-        "ComplyAdvantage",
-        "LexisNexis Risk Solutions",
-        "Verafin"
+        "nCino",
+        "Appian",
+        "iMeta"
+      ],
+      "indirect_competitors": [
+        "Salesforce Financial Services Cloud",
+        "ServiceNow Financial Ops",
+        "NICE Actimize",
+        "Oracle OFSAA"
       ],
       "competitor_cluster_tags": ["CLM", "KYC", "AML", "onboarding", "workflow", "rules engine"],
       "search_query_seeds": {
@@ -297,48 +361,61 @@
       }
     },
     {
-      "company_id": "agility-cis",
-      "name": "Agility CIS",
-      "company_context": "Utility billing + CRM/customer systems business (brand within/owned by Tally Group).",
+      "company_id": "tally-group",
+      "name": "Tally Group",
+      "aliases": ["Agility CIS", "Znalytics", "Webtools Energy"],
+      "company_context": "Cloud-native utility billing and customer information systems (CIS) for the Energy & Utility sector. Co-invested with Pioneer Capital.",
       "websites": ["https://tally.co/"],
-      "sector": "Utility Billing + CRM",
+      "sector": "Utility SaaS / Retail Energy Platform",
       "cluster_id": "utilities_customer_systems",
       "related_entities_to_monitor": ["Znalytics", "Webtools Energy"],
-      "competitors_candidate": [
+      "direct_competitors": [
         "Gentrack",
-        "Hansen Technologies",
-        "Oracle Utilities",
         "Kraken Technologies",
-        "SAP IS-U ecosystem"
+        "Hansen Technologies",
+        "Fluence",
+        "SkyBill",
+        "Junifer"
+      ],
+      "indirect_competitors": [
+        "Oracle Utilities",
+        "SAP for Utilities",
+        "Salesforce Energy & Utilities Cloud"
       ],
       "competitor_cluster_tags": ["CIS", "utility billing", "energy retail", "customer care and billing"],
       "search_query_seeds": {
-        "company_terms": ["Agility CIS", "Tally Agility", "CIS utility billing"],
+        "company_terms": ["Tally Group", "tally.co", "Agility CIS", "Znalytics", "Webtools Energy"],
         "deal_terms": ["utility contract", "acquisition", "partnership", "go-live"],
         "product_terms": ["customer information system", "utility billing", "energy retail platform", "migration"]
       }
     },
     {
-      "company_id": "tally-group",
-      "name": "Tally Group",
-      "company_context": "Utility SaaS / retail energy platform group (also associated with Znalytics and Webtools Energy).",
-      "websites": ["https://tally.co/"],
-      "sector": "Utility SaaS / Retail Energy Platform + Modules",
-      "cluster_id": "utilities_customer_systems",
-      "related_entities_to_monitor": ["Znalytics", "Webtools Energy"],
-      "competitors_candidate": [
-        "Kraken Technologies",
-        "Gentrack",
-        "Hansen Technologies",
-        "Oracle Utilities",
-        "SAP IS-U ecosystem",
-        "Salesforce Energy & Utilities Cloud"
+      "company_id": "mhance",
+      "name": "mHance",
+      "company_context": "Microsoft Dynamics 365 Partner (ERP/CRM) specializing in Non-Profit and Mid-Market sectors.",
+      "websites": ["https://www.mhance.com/"],
+      "sector": "Microsoft Dynamics Partner - Non-Profit / Mid-Market",
+      "cluster_id": "microsoft_dynamics_partners",
+      "direct_competitors": [
+        "HSO",
+        "Hitachi Solutions",
+        "Columbus Global",
+        "Incremental Group",
+        "Akita Intelligent Solutions",
+        "TSG"
       ],
-      "competitor_cluster_tags": ["retail energy platform", "billing", "customer care", "tariffs"],
+      "indirect_competitors": [
+        "Blackbaud",
+        "Salesforce.org",
+        "Unit4",
+        "Sage Intacct",
+        "NetSuite"
+      ],
+      "competitor_cluster_tags": ["Dynamics 365", "Microsoft partner", "non-profit CRM", "ERP", "fund accounting"],
       "search_query_seeds": {
-        "company_terms": ["Tally Group", "tally.co", "Znalytics", "Webtools Energy"],
-        "deal_terms": ["acquisition", "utility contract win", "funding", "partnership"],
-        "product_terms": ["utility billing", "customer care and billing", "energy retail SaaS", "CIS"]
+        "company_terms": ["mHance", "mHance Dynamics", "mHance Microsoft"],
+        "deal_terms": ["acquisition", "partnership", "Microsoft award", "funding"],
+        "product_terms": ["Dynamics 365", "Business Central", "non-profit CRM", "fund accounting", "ERP implementation"]
       }
     }
   ]

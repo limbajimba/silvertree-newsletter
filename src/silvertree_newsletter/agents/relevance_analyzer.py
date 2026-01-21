@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
 
 from silvertree_newsletter.models.schemas import (
     NewsItem,
@@ -75,8 +75,7 @@ class RelevanceAnalyzer:
     model: str = "gemini-2.5-flash"
 
     def __post_init__(self) -> None:
-        genai.configure(api_key=self.api_key)
-        self.client = genai.GenerativeModel(self.model)
+        self.client = genai.Client(api_key=self.api_key)
 
     async def analyze_item(
         self,
@@ -87,7 +86,10 @@ class RelevanceAnalyzer:
         prompt = self._build_prompt(item, portfolio_context)
 
         try:
-            response = self.client.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+            )
             result = self._parse_response(response.text)
             return self._build_analyzed_item(item, result)
         except Exception as e:
@@ -217,15 +219,24 @@ def build_portfolio_context(
         name = company.get("name", "")
         context = company.get("company_context", "")
         sector = company.get("sector", "")
-        competitors = company.get("competitors_candidate", [])
+        aliases = company.get("aliases", []) or []
+        direct = company.get("direct_competitors", []) or []
+        indirect = company.get("indirect_competitors", []) or []
+        legacy = company.get("competitors_candidate", []) or []
 
         lines.append(f"\n- {name}")
+        if aliases:
+            lines.append(f"  Also known as: {', '.join(aliases[:3])}")
         if context:
             lines.append(f"  Description: {context}")
         if sector:
             lines.append(f"  Sector: {sector}")
-        if competitors:
-            lines.append(f"  Key Competitors: {', '.join(competitors[:5])}")
+        if direct:
+            lines.append(f"  Direct competitors: {', '.join(direct[:5])}")
+        if indirect:
+            lines.append(f"  Indirect competitors: {', '.join(indirect[:5])}")
+        if not direct and not indirect and legacy:
+            lines.append(f"  Key Competitors: {', '.join(legacy[:5])}")
 
     lines.append("\n\nCompetitor Clusters to Monitor:")
     for cluster in clusters:

@@ -92,6 +92,7 @@ async def search_perplexity(state: dict) -> dict:
         recency_filter=_recency_filter(settings.search_lookback_days),
         lookback_days=settings.search_lookback_days,
         keep_undated=settings.keep_undated_items,
+        max_age_days=settings.max_article_age_days,
     )
 
     try:

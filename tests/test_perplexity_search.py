@@ -38,9 +38,9 @@ async def test_single_search():
         companies=companies,
         clusters=clusters,
         lookback_days=settings.search_lookback_days,
-        max_company_terms=4,
+        max_company_terms=3,
         max_competitors=2,
-        max_bucket_terms=5,
+        max_event_terms=4,
     )
     print(f"Generated {len(queries)} search queries")
 

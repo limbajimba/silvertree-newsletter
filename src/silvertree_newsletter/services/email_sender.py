@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import html as html_lib
 import logging
+import mimetypes
 import re
 import smtplib
 import ssl
 from dataclasses import dataclass
 from email.message import EmailMessage
 from email.utils import make_msgid
+from pathlib import Path
 
 import certifi
 
@@ -54,6 +56,7 @@ class SmtpEmailSender:
         from_email: str,
         to_emails: list[str],
         reply_to: str | None = None,
+        attachments: list[str] | None = None,
     ) -> EmailSendResult:
         """Send a multipart email with text + HTML."""
         if not self.host:
@@ -81,6 +84,8 @@ class SmtpEmailSender:
         text_fallback = _html_to_text(html)
         msg.set_content(text_fallback or "Newsletter available in HTML format.")
         msg.add_alternative(html or "", subtype="html")
+        if attachments:
+            _add_attachments(msg, attachments)
 
         try:
             if self.use_ssl:
@@ -128,3 +133,27 @@ def _html_to_text(html: str) -> str:
     text = re.sub(r"\n{3,}", "\n\n", text)
     text = re.sub(r"\n\s+\n", "\n\n", text)
     return text.strip()
+
+
+def _guess_mime_type(path: Path) -> tuple[str, str]:
+    if path.suffix.lower() == ".md":
+        return "text", "markdown"
+    if path.suffix.lower() == ".txt":
+        return "text", "plain"
+
+    guessed, _ = mimetypes.guess_type(path.name)
+    if guessed:
+        maintype, subtype = guessed.split("/", 1)
+        return maintype, subtype
+    return "application", "octet-stream"
+
+
+def _add_attachments(message: EmailMessage, attachments: list[str]) -> None:
+    for attachment in attachments:
+        path = Path(attachment)
+        if not path.exists():
+            logger.warning(f"Attachment missing: {path}")
+            continue
+        data = path.read_bytes()
+        maintype, subtype = _guess_mime_type(path)
+        message.add_attachment(data, maintype=maintype, subtype=subtype, filename=path.name)

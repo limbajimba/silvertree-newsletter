@@ -22,7 +22,7 @@ from pathlib import Path
 from collections import defaultdict
 from urllib.parse import urlparse
 
-import google.generativeai as genai
+from google import genai
 
 from silvertree_newsletter.workflow.state import (
     AnalyzedItem,
@@ -55,17 +55,20 @@ EXECUTIVE_SUMMARY_PROMPT = """You are writing the executive summary for SilverTr
 {carve_out_summary}
 
 ## Your Task:
-Write a concise executive summary (3-5 sentences) that:
-1. Highlights the most significant developments of the week
-2. Calls out any portfolio company news
-3. Flags key competitive threats
-4. Highlights any carve-out opportunities worth immediate attention
+Write 3-5 concise bullet points summarizing the key signals this week. Each bullet should be:
+- One clear, actionable insight (1 sentence max)
+- Reference specific companies or deals by name
+- Indicate relevance to portfolio (e.g., "impacts Fenergo", "competitor to SALESmanago")
 
-Write in a professional, direct style suitable for PE partners.
-No bullet points - flowing prose.
-Only reference facts present in the provided items. Do not introduce new events.
+Format: Return ONLY bullet points, one per line, starting with "• " (bullet character).
 
-Respond with ONLY the executive summary text, no JSON or formatting."""
+Example format:
+• Ellucian's $6.75bn Anthology acquisition creates consolidation in Higher Ed SIS, directly impacting Thesis competitive landscape
+• Fenergo wins SMBC Americas go-live, validating tier-1 bank expansion strategy
+• Madison Dearborn acquires Zilliant, strengthening PE-backed competition for StepUp RGM
+
+Be direct and professional. PE partners need to scan this in 10 seconds.
+Only reference facts from the provided items. Do not invent events."""
 
 
 FULL_COMPOSE_PROMPT = """You are composing the full weekly SilverTree Equity M&A and Market Signals newsletter.
@@ -84,7 +87,7 @@ Rules:
 Output JSON only with this schema:
 {
   "subject": "string",
-  "executive_summary": "3-5 sentences",
+  "executive_summary": "3-5 bullet points, each starting with • character. One clear, actionable insight per bullet (1 sentence max). Reference specific companies/deals. Example: • Ellucian's acquisition of Anthology creates SIS market consolidation, directly impacting Thesis competitive landscape",
   "sections": {
     "portfolio": {
       "title": "Portfolio Company Signals",
@@ -152,167 +155,287 @@ EMAIL_TEMPLATE = """
     <title>SilverTree Weekly M&A Signals</title>
     <style>
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
+            font-family: Georgia, 'Times New Roman', serif;
+            line-height: 1.7;
+            color: #1a1a1a;
+            max-width: 700px;
             margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
+            padding: 40px 20px;
+            background: #ffffff;
         }}
         .container {{
             background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }}
         .header {{
-            border-bottom: 3px solid #1a5f2a;
+            border-bottom: 2px solid #0F2A4A;
             padding-bottom: 20px;
             margin-bottom: 30px;
         }}
         .header h1 {{
-            color: #1a5f2a;
+            color: #0F2A4A;
             margin: 0;
-            font-size: 24px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }}
+        .header .subtitle {{
+            color: #0F2A4A;
+            font-size: 14px;
+            margin-top: 4px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }}
         .header .date {{
             color: #666;
             font-size: 14px;
-            margin-top: 5px;
+            margin-top: 8px;
         }}
         .executive-summary {{
-            background: #f8f9fa;
-            border-left: 4px solid #1a5f2a;
-            padding: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+            padding: 20px 0;
+            border-bottom: 1px solid #e5e5e5;
         }}
-        .executive-summary h2 {{
-            color: #1a5f2a;
-            margin-top: 0;
-            font-size: 18px;
+        .executive-summary-list {{
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }}
+        .executive-summary-list li {{
+            color: #333;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }}
+        .executive-summary-list li:before {{
+            content: "•";
+            color: #0F2A4A;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
         }}
         .section {{
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }}
-        .section h2 {{
-            color: #1a5f2a;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-            font-size: 18px;
-        }}
-        .news-item {{
-            padding: 15px;
-            margin-bottom: 15px;
-            background: #fafafa;
-            border-radius: 4px;
-            border-left: 3px solid #ddd;
-        }}
-        .news-item.portfolio {{
-            border-left-color: #1a5f2a;
-        }}
-        .news-item.competitor {{
-            border-left-color: #e67e22;
-        }}
-        .news-item.deal {{
-            border-left-color: #3498db;
-        }}
-        .news-item.industry {{
-            border-left-color: #6c757d;
-        }}
-        .news-item.carveout {{
-            border-left-color: #e74c3c;
-            background: #fef5f5;
-        }}
-        .news-item h3 {{
-            margin: 0 0 10px 0;
-            font-size: 16px;
-        }}
-        .news-item h3 a {{
-            color: #333;
-            text-decoration: none;
-        }}
-        .news-item h3 a:hover {{
-            color: #1a5f2a;
-        }}
-        .news-item .meta {{
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 10px;
-        }}
-        .news-item .why-it-matters {{
-            font-size: 14px;
-            color: #444;
-        }}
-        .news-item .impact {{
-            margin-top: 8px;
-            font-size: 13px;
-            color: #2c3e50;
-        }}
-        .group {{
+        .section-header {{
+            display: flex;
+            align-items: center;
             margin-bottom: 20px;
         }}
-        .group h3 {{
-            margin: 0 0 10px 0;
+        .section-label {{
+            background: #0F2A4A;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 12px;
+            margin-right: 15px;
+            white-space: nowrap;
+        }}
+        .section-label.alert {{
+            background: #C41E3A;
+        }}
+        .section-line {{
+            flex-grow: 1;
+            height: 1px;
+            background: #d0d0d0;
+        }}
+        .news-list {{
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }}
+        .news-item {{
+            display: flex;
+            margin-bottom: 22px;
+            padding-left: 0;
+        }}
+        .bullet {{
+            color: #C41E3A;
+            font-size: 8px;
+            margin-right: 12px;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }}
+        .bullet.navy {{
+            color: #0F2A4A;
+        }}
+        .news-content {{
+            flex: 1;
+        }}
+        .news-content a {{
+            color: #1a1a1a;
+            text-decoration: underline;
+            font-weight: 600;
             font-size: 15px;
-            color: #1a5f2a;
         }}
-        .carveout-alert {{
-            background: #fef5f5;
-            border: 2px solid #e74c3c;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
+        .news-content a:hover {{
+            color: #0F2A4A;
         }}
-        .carveout-alert h2 {{
-            color: #e74c3c;
-            margin-top: 0;
+        .news-description {{
+            color: #444;
+            font-size: 14px;
+            margin-top: 6px;
+            line-height: 1.6;
+        }}
+        .portco-tag {{
+            display: inline-block;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 2px 6px;
+            margin-left: 8px;
+            background: #E8EEF4;
+            color: #0F2A4A;
+            border-radius: 2px;
+            vertical-align: middle;
+        }}
+        .competitor-tag {{
+            display: inline-block;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 2px 6px;
+            margin-left: 6px;
+            border-radius: 2px;
+            vertical-align: middle;
+        }}
+        .competitor-tag.direct {{
+            background: #FBEAEA;
+            color: #8A1F2C;
+        }}
+        .competitor-tag.indirect {{
+            background: #EDF1F5;
+            color: #3D4A5C;
+        }}
+        .group {{
+            margin-bottom: 25px;
+        }}
+        .group-name {{
+            color: #0F2A4A;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e5e5;
+        }}
+        .carveout-section {{
+            margin-bottom: 35px;
+        }}
+        .carveout-note {{
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+            margin: 0 0 20px 0;
+            padding: 12px 16px;
+            background: #F8F9FA;
+            border-left: 3px solid #C41E3A;
+        }}
+        .carveout-list {{
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }}
         .carveout-item {{
-            background: white;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 10px;
+            background: #FAFBFC;
+            border: 1px solid #E5E7EB;
+            border-left: 4px solid #C41E3A;
+            padding: 18px 20px;
+            transition: box-shadow 0.2s ease;
+        }}
+        .carveout-item:hover {{
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }}
+        .carveout-content {{
+            flex: 1;
+        }}
+        .carveout-header {{
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #E5E7EB;
+        }}
+        .carveout-target {{
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a1a1a;
+            display: inline-block;
+        }}
+        .carveout-details {{
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }}
+        .carveout-detail-row {{
+            font-size: 14px;
+            color: #444;
+            line-height: 1.6;
+        }}
+        .detail-label {{
+            font-weight: 600;
+            color: #0F2A4A;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            min-width: 140px;
+        }}
+        .priority-tag {{
+            display: inline-block;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 4px 10px;
+            margin-left: 12px;
+            vertical-align: middle;
+            border-radius: 3px;
         }}
         .priority-high {{
-            border-left: 4px solid #e74c3c;
+            background: #C41E3A;
+            color: white;
+            box-shadow: 0 2px 4px rgba(196, 30, 58, 0.2);
         }}
         .priority-medium {{
-            border-left: 4px solid #e67e22;
+            background: #E67E22;
+            color: white;
+            box-shadow: 0 2px 4px rgba(230, 126, 34, 0.2);
         }}
         .footer {{
-            margin-top: 30px;
+            margin-top: 40px;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid #e5e5e5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 12px;
-            color: #666;
-            text-align: center;
+            color: #888;
         }}
-        .tag {{
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-right: 5px;
+        .footer p {{
+            margin: 4px 0;
         }}
-        .tag-portfolio {{ background: #d4edda; color: #155724; }}
-        .tag-competitor {{ background: #fff3cd; color: #856404; }}
-        .tag-deal {{ background: #cce5ff; color: #004085; }}
-        .tag-industry {{ background: #e2e3e5; color: #383d41; }}
-        .tag-carveout {{ background: #f8d7da; color: #721c24; }}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌲 SilverTree Weekly M&A Signals</h1>
-            <div class="date">Week of {period_start} - {period_end}</div>
+            <h1>SilverTree</h1>
+            <div class="subtitle">Weekly M&A Signals</div>
+            <div class="date">{period_start} - {period_end}</div>
         </div>
 
         <div class="executive-summary">
-            <h2>Executive Summary</h2>
-            <p>{executive_summary}</p>
+            {executive_summary}
         </div>
 
         {carveout_section}
@@ -324,8 +447,8 @@ EMAIL_TEMPLATE = """
         {deals_section}
 
         <div class="footer">
-            <p>Generated automatically by SilverTree M&A Signals Tracker</p>
-            <p>{total_items} items processed | {relevant_items} relevant items</p>
+            <p>SilverTree Equity Partners</p>
+            <p>{total_items} items processed | {relevant_items} relevant signals</p>
         </div>
     </div>
 </body>
@@ -345,14 +468,14 @@ class EmailComposerAgent:
     model: str = "gemini-2.5-flash"
 
     def __post_init__(self) -> None:
-        genai.configure(api_key=self.api_key)
-        self.client = genai.GenerativeModel(self.model)
+        self.client = genai.Client(api_key=self.api_key)
 
     def compose_newsletter(
         self,
         analyzed_items: list[AnalyzedItem],
         carve_outs: list[CarveOutOpportunity],
         total_processed: int,
+        carve_out_note: str | None = None,
     ) -> tuple[Newsletter, str]:
         """Compose the complete newsletter."""
         json_path = Path(settings.company_data_path)
@@ -360,6 +483,7 @@ class EmailComposerAgent:
             json_path = Path(__file__).parent.parent.parent.parent / settings.company_data_path
         companies, clusters = load_company_context(json_path)
         company_lookup, cluster_lookup = build_company_lookups(companies, clusters)
+        competitor_index = _build_competitor_index(companies)
 
         merged_carve_outs = self._merge_carve_outs(carve_outs)
 
@@ -370,6 +494,7 @@ class EmailComposerAgent:
                 total_processed=total_processed,
                 company_lookup=company_lookup,
                 cluster_lookup=cluster_lookup,
+                competitor_index=competitor_index,
             )
         except Exception as exc:
             logger.warning(f"LLM newsletter composition failed, falling back: {exc}")
@@ -379,12 +504,14 @@ class EmailComposerAgent:
                 total_processed=total_processed,
                 company_lookup=company_lookup,
                 cluster_lookup=cluster_lookup,
+                competitor_index=competitor_index,
             )
 
         # Render HTML
         html = self._render_html(
             newsletter,
             merged_carve_outs,
+            carve_out_note=carve_out_note,
             company_lookup=company_lookup,
             cluster_lookup=cluster_lookup,
         )
@@ -426,7 +553,10 @@ class EmailComposerAgent:
         )
 
         try:
-            response = self.client.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+            )
             result = _parse_json(response.text)
             if not isinstance(result, list):
                 raise ValueError("Carve-out merge did not return a JSON list")
@@ -480,7 +610,10 @@ class EmailComposerAgent:
         )
 
         try:
-            response = self.client.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+            )
             return response.text.strip()
         except Exception as e:
             logger.error(f"Failed to generate executive summary: {e}")
@@ -494,6 +627,7 @@ class EmailComposerAgent:
         total_processed: int,
         company_lookup: dict[str, object],
         cluster_lookup: dict[str, object],
+        competitor_index: dict[str, object],
     ) -> Newsletter:
         """Compose the newsletter using an LLM for full structure and dedupe."""
         items_payload = []
@@ -546,7 +680,10 @@ class EmailComposerAgent:
             f"Carve-outs (JSON):\n{json.dumps(carve_out_payload, indent=2)}"
         )
 
-        response = self.client.generate_content(prompt)
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=prompt,
+        )
         result = _parse_json(response.text)
 
         if not isinstance(result, dict):
@@ -561,18 +698,24 @@ class EmailComposerAgent:
             default_title="Portfolio Company Signals",
             item_lookup=item_lookup,
             used_ids=used_ids,
+            company_lookup=company_lookup,
+            competitor_index=competitor_index,
         )
         competitive_section = self._build_section_from_llm(
             sections.get("competitive"),
             default_title="Competitive Cluster Signals",
             item_lookup=item_lookup,
             used_ids=used_ids,
+            company_lookup=company_lookup,
+            competitor_index=competitor_index,
         )
         deals_section = self._build_section_from_llm(
             sections.get("deals"),
             default_title="Major Deals & Market Activity",
             item_lookup=item_lookup,
             used_ids=used_ids,
+            company_lookup=company_lookup,
+            competitor_index=competitor_index,
         )
 
         if not (portfolio_section.items or competitive_section.items or deals_section.items):
@@ -621,21 +764,22 @@ class EmailComposerAgent:
         total_processed: int,
         company_lookup: dict[str, object],
         cluster_lookup: dict[str, object],
+        competitor_index: dict[str, object],
     ) -> Newsletter:
         """Fallback deterministic composition if LLM fails."""
         grouped = self._group_by_category(analyzed_items)
         executive_summary = self._generate_executive_summary(analyzed_items, carve_outs)
 
         portfolio_items = [
-            self._build_newsletter_item(item, company_lookup, cluster_lookup)
+            self._build_newsletter_item(item, company_lookup, cluster_lookup, competitor_index)
             for item in grouped.get(ItemCategory.PORTFOLIO, [])
         ]
         competitive_items = [
-            self._build_newsletter_item(item, company_lookup, cluster_lookup)
+            self._build_newsletter_item(item, company_lookup, cluster_lookup, competitor_index)
             for item in grouped.get(ItemCategory.COMPETITOR, []) + grouped.get(ItemCategory.INDUSTRY, [])
         ]
         deal_items = [
-            self._build_newsletter_item(item, company_lookup, cluster_lookup)
+            self._build_newsletter_item(item, company_lookup, cluster_lookup, competitor_index)
             for item in grouped.get(ItemCategory.MAJOR_DEAL, [])
         ]
 
@@ -691,10 +835,19 @@ class EmailComposerAgent:
         item: AnalyzedItem,
         company_lookup: dict[str, object],
         cluster_lookup: dict[str, object],
+        competitor_index: dict[str, object],
     ) -> NewsletterItem:
         raw = item.triaged_item.raw_item
         portfolio_company = resolve_portfolio_company(item, company_lookup)
         cluster = resolve_cluster(item, company_lookup, cluster_lookup)
+        competitors = _collect_related_competitors([item])
+        competitor_relation = None
+        if item.triaged_item.category in (ItemCategory.COMPETITOR, ItemCategory.INDUSTRY):
+            competitor_relation = _infer_competitor_relation(
+                competitors,
+                portfolio_company,
+                competitor_index,
+            )
         impact = item.impact_on_silvertree or item.triaged_item.triage_reason or ""
         sources = [
             SourceLink(
@@ -712,6 +865,7 @@ class EmailComposerAgent:
             deal_type=item.triaged_item.deal_type,
             portfolio_company=portfolio_company,
             cluster=cluster,
+            competitor_relation=competitor_relation,
             signal_score=item.signal_score,
             primary_date=raw.published_date,
             sources=sources,
@@ -725,6 +879,8 @@ class EmailComposerAgent:
         default_title: str,
         item_lookup: dict[str, AnalyzedItem],
         used_ids: set[str],
+        company_lookup: dict[str, object],
+        competitor_index: dict[str, object],
     ) -> NewsletterSection:
         if not section_data:
             return NewsletterSection(title=default_title)
@@ -746,7 +902,13 @@ class EmailComposerAgent:
                     continue
                 used_ids.update(ids)
                 source_items = [item_lookup[item_id] for item_id in ids]
-                newsletter_item = _build_item_from_llm(item_data, source_items, group_name)
+                newsletter_item = _build_item_from_llm(
+                    item_data,
+                    source_items,
+                    group_name,
+                    company_lookup=company_lookup,
+                    competitor_index=competitor_index,
+                )
                 group_items.append(newsletter_item)
                 section_items.append(newsletter_item)
 
@@ -806,14 +968,17 @@ class EmailComposerAgent:
         newsletter: Newsletter,
         carve_outs: list[CarveOutOpportunity],
         *,
+        carve_out_note: str | None = None,
+        carve_out_research_data: dict | None = None,
         company_lookup: dict[str, object],
         cluster_lookup: dict[str, object],
     ) -> str:
         """Render newsletter to HTML."""
-        # Render carve-out section
+        # Render carve-out section with enhanced formatting
         carveout_html = ""
         if carve_outs:
             carveout_items = []
+            note_html = f'<div class="carveout-note">{carve_out_note}</div>' if carve_out_note else ""
             for co in carve_outs:
                 source_items = co.source_items or [co.source_item]
                 source_links = [
@@ -829,50 +994,76 @@ class EmailComposerAgent:
                 source_link = (
                     f'<a href="{primary_source.url}" target="_blank">{primary_source.title}</a>'
                     if primary_source
-                    else "Source"
+                    else ""
                 )
-                source_label = primary_source.source if primary_source else "Source"
-                extra_sources = ""
-                if len(source_links) > 1:
-                    extra_links = [
-                        f'<a href="{src.url}" target="_blank">{src.source or "source"}</a>'
-                        for src in source_links[1:4]
-                    ]
-                    extra_sources = f" | Also: {', '.join(extra_links)}"
+
+                # Limit potential units to top 3 for cleaner display
+                units_display = co.potential_units[:3]
+                units_text = ", ".join(units_display)
+                if len(co.potential_units) > 3:
+                    units_text += f" (+{len(co.potential_units) - 3} more)"
+
+                priority_tag = f'<span class="priority-tag priority-{co.priority}">{co.priority.upper()}</span>'
+
                 carveout_items.append(f"""
-                <div class="carveout-item priority-{co.priority}">
-                    <strong>{co.target_company}</strong>
-                    <p><strong>Potential Units:</strong> {', '.join(co.potential_units)}</p>
-                    <p><strong>Strategic Fit:</strong> {co.strategic_fit_rationale}</p>
-                    <p><strong>Source:</strong> {source_link} ({source_label}){extra_sources}</p>
-                    <p><strong>Action:</strong> {co.recommended_action}</p>
+                <div class="carveout-item">
+                    <div class="carveout-content">
+                        <div class="carveout-header">
+                            <div class="carveout-target">{co.target_company}{priority_tag}</div>
+                        </div>
+                        <div class="carveout-details">
+                            <div class="carveout-detail-row">
+                                <span class="detail-label">Units:</span> {units_text}
+                            </div>
+                            <div class="carveout-detail-row">
+                                <span class="detail-label">Strategic Fit:</span> {co.strategic_fit_rationale or 'See detailed dossier'}
+                            </div>
+                            {f'<div class="carveout-detail-row"><span class="detail-label">Recommended Action:</span> {co.recommended_action}</div>' if co.recommended_action else ''}
+                            {f'<div class="carveout-detail-row"><span class="detail-label">Source:</span> {source_link}</div>' if source_link else ''}
+                        </div>
+                    </div>
                 </div>
                 """)
             carveout_html = f"""
-            <div class="carveout-alert">
-                <h2>🎯 Carve-Out Opportunities</h2>
-                {''.join(carveout_items)}
+            <div class="carveout-section">
+                <div class="section-header">
+                    <span class="section-label alert">Carve-Out Opportunities</span>
+                    <span class="section-line"></span>
+                </div>
+                {note_html}
+                <div class="carveout-list">
+                    {''.join(carveout_items)}
+                </div>
             </div>
             """
 
-        # Render sections
+        # Render sections - portfolio uses navy bullets, others use red with portco tags
         portfolio_html = self._render_grouped_section(
             newsletter.portfolio_section,
             lambda item: item.portfolio_company,
+            bullet_class="navy",
+            show_portco=False,
         )
         competitive_html = self._render_grouped_section(
             newsletter.competitive_cluster_section,
             lambda item: item.cluster,
+            bullet_class="",
+            show_portco=True,  # Show which portfolio company this competitor relates to
         )
         deals_html = self._render_grouped_section(
             newsletter.deals_section,
             lambda item: item.cluster,
+            bullet_class="",
+            show_portco=True,  # Show which portfolio company this deal relates to
         )
+
+        # Format executive summary as bullet list
+        exec_summary_html = _format_executive_summary_as_list(newsletter.executive_summary)
 
         return EMAIL_TEMPLATE.format(
             period_start=newsletter.period_start.strftime("%B %d"),
             period_end=newsletter.period_end.strftime("%B %d, %Y"),
-            executive_summary=newsletter.executive_summary,
+            executive_summary=exec_summary_html,
             carveout_section=carveout_html,
             portfolio_section=portfolio_html,
             competitive_cluster_section=competitive_html,
@@ -885,6 +1076,8 @@ class EmailComposerAgent:
         self,
         section: NewsletterSection,
         group_fn,
+        bullet_class: str = "",
+        show_portco: bool = False,
     ) -> str:
         """Render a grouped section to HTML."""
         if not section.items and not section.groups:
@@ -901,58 +1094,120 @@ class EmailComposerAgent:
         for group in group_order:
             group_name = group.name
             group_items = group.items
-            items_html = [self._render_item(item) for item in group_items]
+            items_html = [self._render_item(item, bullet_class, show_portco) for item in group_items]
             groups_html.append(f"""
             <div class="group">
-                <h3>{group_name}</h3>
-                {''.join(items_html)}
+                <div class="group-name">{group_name}</div>
+                <div class="news-list">
+                    {''.join(items_html)}
+                </div>
             </div>
             """)
 
         return f"""
         <div class="section">
-            <h2>{section.title}</h2>
+            <div class="section-header">
+                <span class="section-label">{section.title}</span>
+                <span class="section-line"></span>
+            </div>
             {''.join(groups_html)}
         </div>
         """
 
-    def _render_item(self, item: NewsletterItem) -> str:
-        category_class = _category_class(item.category)
-        impact_line = item.impact_on_silvertree or "Not specified."
+    def _render_item(self, item: NewsletterItem, bullet_class: str = "", show_portco: bool = False) -> str:
         sources = _dedupe_source_links(item.sources or [])
         primary_link = sources[0] if sources else None
         title = item.headline
         link_html = f'<a href="{primary_link.url}" target="_blank">{title}</a>' if primary_link else title
-        source_label = primary_link.source if primary_link else "Source"
-        date_label = item.primary_date.strftime('%b %d') if item.primary_date else "Recent"
-        extra_sources = ""
-        if len(sources) > 1:
-            extra_links = [
-                f'<a href="{src.url}" target="_blank">{src.source or "source"}</a>'
-                for src in sources[1:4]
-            ]
-            extra_sources = f" | Also: {', '.join(extra_links)}"
+
+        # Add portfolio company tag for competitor/deal items
+        portco_tag = ""
+        if show_portco and item.cluster:
+            related_portcos = _cluster_to_portcos(item.cluster)
+            if related_portcos:
+                portco_tag = f'<span class="portco-tag">{related_portcos}</span>'
+        competitor_tag = ""
+        if item.competitor_relation:
+            relation = item.competitor_relation.strip().lower()
+            label = relation.title() if relation else ""
+            if label:
+                competitor_tag = f'<span class="competitor-tag {relation}">{label}</span>'
+
+        # Combine summary and impact into a single concise description
+        description = item.summary or ""
+
         return f"""
-        <div class="news-item {category_class}">
-            <h3>{link_html}</h3>
-            <div class="meta">
-                <span class="tag tag-{category_class}">{item.deal_type.value.replace('_', ' ').title()}</span>
-                {source_label} | {date_label}{extra_sources}
+        <div class="news-item">
+            <span class="bullet {bullet_class}">&#9632;</span>
+            <div class="news-content">
+                {link_html}{portco_tag}
+                {competitor_tag}
+                <div class="news-description">{description}</div>
             </div>
-            <div class="why-it-matters">{item.summary}</div>
-            <div class="impact"><strong>Impact on SilverTree:</strong> {impact_line}</div>
         </div>
         """
 
 
-def _category_class(category: ItemCategory) -> str:
-    if category == ItemCategory.PORTFOLIO:
-        return "portfolio"
-    if category == ItemCategory.COMPETITOR:
-        return "competitor"
-    if category == ItemCategory.MAJOR_DEAL:
-        return "deal"
-    return "industry"
+# Mapping of competitor clusters to related portfolio companies
+CLUSTER_TO_PORTCOS = {
+    "CPG Trade Promotion Management + Revenue Growth Management (TPM/TPO/RGM)": "XTEL",
+    "cpg_tpm_rgm": "XTEL",
+    "Higher Education Student Information Systems (SIS)": "Thesis",
+    "higher_ed_sis": "Thesis",
+    "Enterprise Architecture + Digital Transformation Platforms (EA / APM / Process)": "Orbus Software",
+    "enterprise_architecture": "Orbus Software",
+    "Marketing Automation + CDP / Lifecycle Engagement (eCommerce)": "SALESmanago",
+    "marketing_automation_cdp": "SALESmanago",
+    "R&D Tax Credits + Innovation Funding Advisory + Grant Databases": "Ignite Group",
+    "grants_subsidies": "Ignite Group",
+    "Financial Crime / Client Lifecycle Management (CLM) + KYC/AML Platforms": "Fenergo",
+    "fincrime_clm_kyc": "Fenergo",
+    "Utilities Customer Systems (Billing/CIS/CRM) + Retail Energy Platforms": "Tally Group",
+    "utilities_customer_systems": "Tally Group",
+    "Microsoft Dynamics 365 Partners (ERP/CRM) - Mid-Market & Non-Profit": "mHance",
+    "microsoft_dynamics_partners": "mHance",
+}
+
+
+def _cluster_to_portcos(cluster: str | None) -> str:
+    """Map a competitor cluster to related portfolio companies."""
+    if not cluster:
+        return ""
+    # Try exact match first
+    if cluster in CLUSTER_TO_PORTCOS:
+        return CLUSTER_TO_PORTCOS[cluster]
+    # Try case-insensitive partial match
+    cluster_lower = cluster.lower()
+    for key, value in CLUSTER_TO_PORTCOS.items():
+        if key.lower() in cluster_lower or cluster_lower in key.lower():
+            return value
+    return ""
+
+
+def _format_executive_summary_as_list(summary: str) -> str:
+    """Convert bullet-point text to HTML list."""
+    if not summary:
+        return '<ul class="executive-summary-list"><li>No key signals this week.</li></ul>'
+
+    # Split by bullet points (• or - at start of line)
+    lines = summary.strip().split("\n")
+    items = []
+    for line in lines:
+        line = line.strip()
+        # Remove leading bullet characters
+        if line.startswith("•"):
+            line = line[1:].strip()
+        elif line.startswith("-"):
+            line = line[1:].strip()
+        elif line.startswith("*"):
+            line = line[1:].strip()
+        if line:
+            items.append(f"<li>{line}</li>")
+
+    if not items:
+        return f'<ul class="executive-summary-list"><li>{summary}</li></ul>'
+
+    return f'<ul class="executive-summary-list">{"".join(items)}</ul>'
 
 
 def _parse_json(text: str) -> object:
@@ -1049,6 +1304,86 @@ def _dedupe_text_list(values: list[str]) -> list[str]:
         seen.add(key)
         deduped.append(text)
     return deduped
+
+
+def _normalize_competitor_name(value: str | None) -> str:
+    text = _coerce_text(value) or ""
+    return " ".join(text.lower().split())
+
+
+def _build_competitor_index(companies: list) -> dict[str, object]:
+    by_company: dict[str, dict[str, set[str]]] = {}
+    global_direct: set[str] = set()
+    global_indirect: set[str] = set()
+
+    for company in companies:
+        company_key = _normalize_competitor_name(getattr(company, "name", ""))
+        direct = {
+            _normalize_competitor_name(name)
+            for name in (getattr(company, "direct_competitors", None) or [])
+            if name
+        }
+        indirect = {
+            _normalize_competitor_name(name)
+            for name in (getattr(company, "indirect_competitors", None) or [])
+            if name
+        }
+        legacy = {
+            _normalize_competitor_name(name)
+            for name in (getattr(company, "competitors_candidate", None) or [])
+            if name
+        }
+        if not direct and not indirect:
+            direct = legacy
+        by_company[company_key] = {"direct": direct, "indirect": indirect}
+        global_direct.update(direct)
+        global_indirect.update(indirect)
+
+    return {
+        "by_company": by_company,
+        "global_direct": global_direct,
+        "global_indirect": global_indirect,
+    }
+
+
+def _collect_related_competitors(items: list[AnalyzedItem]) -> list[str]:
+    competitors: list[str] = []
+    for item in items:
+        competitors.extend(item.triaged_item.related_competitors or [])
+    return _dedupe_text_list(competitors)
+
+
+def _infer_competitor_relation(
+    competitors: list[str],
+    portfolio_company: str | None,
+    competitor_index: dict[str, object],
+) -> str | None:
+    if not competitors:
+        return None
+
+    normalized = [_normalize_competitor_name(name) for name in competitors if name]
+    if not normalized:
+        return None
+
+    by_company = competitor_index.get("by_company", {})
+    global_direct = competitor_index.get("global_direct", set())
+    global_indirect = competitor_index.get("global_indirect", set())
+
+    if portfolio_company:
+        company_key = _normalize_competitor_name(portfolio_company)
+        company_sets = by_company.get(company_key, {})
+        direct = company_sets.get("direct", set())
+        indirect = company_sets.get("indirect", set())
+        if any(name in direct for name in normalized):
+            return "direct"
+        if any(name in indirect for name in normalized):
+            return "indirect"
+
+    if any(name in global_direct for name in normalized):
+        return "direct"
+    if any(name in global_indirect for name in normalized):
+        return "indirect"
+    return None
 
 
 def _priority_rank(priority: str) -> int:
@@ -1205,6 +1540,9 @@ def _build_item_from_llm(
     item_data: dict,
     source_items: list[AnalyzedItem],
     group_name: str,
+    *,
+    company_lookup: dict[str, object] | None = None,
+    competitor_index: dict[str, object] | None = None,
 ) -> NewsletterItem:
     primary = source_items[0]
     raw = primary.triaged_item.raw_item
@@ -1222,6 +1560,16 @@ def _build_item_from_llm(
         portfolio_company = group_name
     if category in (ItemCategory.COMPETITOR, ItemCategory.INDUSTRY, ItemCategory.MAJOR_DEAL) and not cluster:
         cluster = group_name
+
+    competitor_relation = None
+    if company_lookup and competitor_index and category in (ItemCategory.COMPETITOR, ItemCategory.INDUSTRY):
+        resolved_portco = portfolio_company or resolve_portfolio_company(primary, company_lookup)
+        competitors = _collect_related_competitors(source_items)
+        competitor_relation = _infer_competitor_relation(
+            competitors,
+            resolved_portco,
+            competitor_index,
+        )
 
     sources: list[SourceLink] = []
     primary_date = None
@@ -1247,6 +1595,7 @@ def _build_item_from_llm(
         deal_type=deal_type,
         portfolio_company=portfolio_company,
         cluster=cluster,
+        competitor_relation=competitor_relation,
         signal_score=signal_score,
         primary_date=primary_date,
         sources=sources,

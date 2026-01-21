@@ -173,6 +173,88 @@ def build_prompt_context_summary(
     return "\n".join(lines).strip()
 
 
+def build_carveout_context_for_research(
+    portfolio_company: str | None,
+    competitors: list[str],
+    prompt_context: dict,
+) -> str:
+    """Build carve-out playbook context for deep research prompts."""
+    if not prompt_context:
+        return ""
+
+    portfolio_entries, competitor_map, sector_playbooks = _build_portfolio_index(prompt_context)
+    matched_ids: set[str] = set()
+
+    if portfolio_company:
+        entry = portfolio_entries.get(portfolio_company.strip().lower())
+        if entry and entry.get("company_id"):
+            matched_ids.add(entry["company_id"])
+
+    for competitor in competitors:
+        parent_company_id = competitor_map.get(competitor.strip().lower())
+        if parent_company_id:
+            matched_ids.add(parent_company_id)
+
+    global_guidelines = prompt_context.get("global_guidelines", {})
+    carveout = global_guidelines.get("carveout_screening_global_heuristics", {}) or {}
+    additions = (
+        prompt_context.get("llm_prompt_context_improvements", {})
+        .get("carveout_prompt_additions", [])
+        or []
+    )
+
+    lines: list[str] = []
+
+    positives = carveout.get("strong_positive_signals") or []
+    if positives:
+        lines.append("Carve-out positive signals:")
+        lines.append("- " + "; ".join(positives[:4]))
+
+    negatives = carveout.get("strong_negative_signals") or []
+    if negatives:
+        lines.append("Carve-out negative signals:")
+        lines.append("- " + "; ".join(negatives[:4]))
+
+    output_fields = carveout.get("output_fields_required") or []
+    if output_fields:
+        lines.append("Required carve-out outputs:")
+        lines.append("- " + "; ".join(output_fields))
+
+    if additions:
+        lines.append("Carve-out analysis additions:")
+        lines.append("- " + "; ".join(additions[:3]))
+
+    if not matched_ids:
+        return "\n".join(lines).strip()
+
+    by_company_id = {
+        entry.get("company_id"): entry
+        for entry in portfolio_entries.values()
+        if entry.get("company_id")
+    }
+
+    for company_id in matched_ids:
+        entry = by_company_id.get(company_id)
+        if not entry:
+            continue
+        lines.append(f"Company: {entry.get('name')}")
+
+        sector_key = entry.get("sector_cluster")
+        playbook = sector_playbooks.get(sector_key or "")
+        if playbook:
+            ideal = playbook.get("ideal_carveout_profile")
+            if ideal:
+                lines.append("Sector ideal carve-out profile:")
+                lines.append(_format_context_block(ideal))
+
+        override = entry.get("ideal_carveout_profile_override")
+        if override:
+            lines.append("Company carve-out profile override:")
+            lines.append(_format_context_block(override))
+
+    return "\n".join(lines).strip()
+
+
 def _normalize_text(text: str) -> str:
     return re.sub(r"[^a-z0-9\s]", " ", text.lower())
 
@@ -200,6 +282,10 @@ def _build_portfolio_index(prompt_context: dict) -> tuple[dict, dict, dict]:
         company_id = entry.get("company_id")
         if name and company_id:
             by_name[name.lower()] = entry
+        for alias in entry.get("aliases", []) or []:
+            alias_text = alias.strip() if isinstance(alias, str) else ""
+            if alias_text and company_id and alias_text.lower() not in by_name:
+                by_name[alias_text.lower()] = entry
 
         for competitor in entry.get("must_monitor_competitors", []) or []:
             competitor_name = competitor.get("name")
@@ -252,3 +338,19 @@ def _format_company_context(
                 lines.append("- Low-signal events: " + "; ".join(events[:1]))
 
     return "\n".join(lines).strip()
+
+
+def _trim_context(value, max_list_items: int = 6):
+    if isinstance(value, list):
+        return [_trim_context(item, max_list_items) for item in value[:max_list_items]]
+    if isinstance(value, dict):
+        return {key: _trim_context(val, max_list_items) for key, val in value.items()}
+    return value
+
+
+def _format_context_block(value) -> str:
+    trimmed = _trim_context(value)
+    try:
+        return json.dumps(trimmed, indent=2, ensure_ascii=True)
+    except TypeError:
+        return str(trimmed)

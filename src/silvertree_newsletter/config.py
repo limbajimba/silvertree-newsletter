@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     analysis_model: str = ""
     composer_model: str = ""
     dedupe_model: str = ""
+    carve_out_research_model: str = ""
 
     # Email Configuration
     from_email: str = "newsletter@silvertree-equity.com"
@@ -59,9 +60,16 @@ class Settings(BaseSettings):
     perplexity_max_items: int = 8
     perplexity_rpm: int = 50  # Tier 0/1 limit for sonar model
     perplexity_max_retries: int = 3
+    perplexity_max_concurrent: int = 10  # Max parallel searches (rate limit still applies)
     search_lookback_days: int = 7
-    keep_undated_items: bool = True
+    keep_undated_items: bool = False
+    max_article_age_days: int = 7  # Hard cutoff - reject anything older
     request_timeout_seconds: float = 30.0
+    # Perplexity API enhancements
+    perplexity_search_context_size: str = "medium"  # low, medium, high
+    perplexity_default_location_country: str = "GB"  # UK focus for SilverTree
+    perplexity_use_date_filters: bool = True  # Use search_after_date filters
+    perplexity_domain_denylist: str = "reddit.com,quora.com"  # Exclude low-quality sources
     dedupe_similarity_threshold: float = 0.9
     min_signal_score: int = 55
     max_portfolio_items: int = 8
@@ -79,6 +87,15 @@ class Settings(BaseSettings):
     full_text_min_chars: int = 200
     max_full_text_items: int = 60
     max_domain_source_queries: int = 12
+    carve_out_research_enabled: bool = True
+    carve_out_research_max_sources: int = 4
+
+    # Deep Research (Google Gemini Interactions API)
+    carve_out_deep_research_enabled: bool = True
+    deep_research_poll_interval: int = 30  # seconds
+    deep_research_max_wait_minutes: int = 45
+    deep_research_high_priority_only: bool = True  # Only run deep research for high-priority carve-outs
+    portfolio_context_dir: str = "config/portfolio_context"
 
     # LLM throughput
     llm_requests_per_minute: int = 60

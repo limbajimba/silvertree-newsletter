@@ -12,6 +12,7 @@ This tool continuously monitors market activity relevant to SilverTree Equity po
 - **Multi-Source News Collection**: Aggregates from industry RSS feeds and Perplexity search (including GP Bullhound via domain filtering)
 - **AI-Powered Analysis**: Uses LLMs to analyze relevance and impact of news items
 - **Carve-out Detection**: Automatically identifies potential carve-out opportunities from M&A deals
+- **Carve-Out Dossiers**: Optional deep-research dossiers for carve-outs, attached to the email
 - **Weekly Newsletter**: Generates comprehensive weekly summaries and emails via SMTP (Gmail)
 
 ## Setup
@@ -103,8 +104,9 @@ Built with:
 4. Fetch full-text for relevant items
 5. Analyze news for relevance and impact
 6. Detect carve-out opportunities
-7. Generate newsletter content
-8. Send email via SMTP (Gmail)
+7. Generate carve-out research dossier (optional)
+8. Generate newsletter content
+9. Send email via SMTP (Gmail)
 
 ## Development
 

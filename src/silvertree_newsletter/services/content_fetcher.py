@@ -91,15 +91,17 @@ class ContentFetcher:
                 response = await client.get(url)
                 response.raise_for_status()
             except Exception as exc:
-                logger.debug(f"Content fetch failed for {url}: {exc}")
+                logger.info(f"Content fetch failed: {url} - {exc}")
                 return item_id, None, f"{url}: {exc}"
 
             content_type = response.headers.get("content-type", "")
             if "text/html" not in content_type and "text/" not in content_type:
+                logger.info(f"Content fetch skipped (unsupported type): {url}")
                 return item_id, None, f"{url}: unsupported content type {content_type}"
 
             text = _extract_text(response.text)
             if not text or len(text) < self.min_chars:
+                logger.info(f"Content fetch skipped (text too short): {url}")
                 return item_id, None, f"{url}: extracted text too short"
 
             if len(text) > self.max_chars:

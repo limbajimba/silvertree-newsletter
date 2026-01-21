@@ -51,8 +51,9 @@ class RSSCollector:
     """Collects news from RSS feeds."""
 
     timeout_seconds: float = 30.0
-    lookback_days: int = 7
+    lookback_days: int = 5  # Tighter window: 5 days instead of 7
     max_items_per_feed: int = 50
+    keep_undated: bool = False  # Reject items without dates by default
     _http_client: httpx.AsyncClient | None = field(init=False, default=None)
 
     async def collect_feed(self, feed_name: str, feed_url: str) -> list[NewsItem]:
@@ -74,12 +75,21 @@ class RSSCollector:
 
         items: list[NewsItem] = []
         cutoff = datetime.now(timezone.utc) - timedelta(days=self.lookback_days)
+        undated_count = 0
+        too_old_count = 0
 
         for entry in feed.entries[:self.max_items_per_feed]:
             published = self._parse_date(entry)
 
-            # Skip items older than lookback period (if date available)
+            # Skip items without dates (unless keep_undated is True)
+            if published is None:
+                undated_count += 1
+                if not self.keep_undated:
+                    continue
+
+            # Skip items older than lookback period
             if published and published < cutoff:
+                too_old_count += 1
                 continue
 
             url = entry.get("link", "")
@@ -99,7 +109,10 @@ class RSSCollector:
                 related_companies=[],  # Will be filled by LLM relevance check
             ))
 
-        logger.info(f"Collected {len(items)} items from {feed_name}")
+        logger.info(
+            "Collected %d items from %s (rejected: %d undated, %d too old)",
+            len(items), feed_name, undated_count if not self.keep_undated else 0, too_old_count
+        )
         return items
 
     async def collect_all(

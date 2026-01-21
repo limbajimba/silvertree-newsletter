@@ -36,6 +36,24 @@ class QueryType(str, Enum):
     GP_BULLHOUND = "gp_bullhound"
 
 
+class SearchContextSize(str, Enum):
+    """Perplexity search context size option."""
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+class UserLocation(BaseModel):
+    """User location for geo-targeted search results."""
+
+    country: str  # ISO 3166-1 alpha-2: "US", "GB"
+    region: Optional[str] = None
+    city: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+
 class Company(BaseModel):
     """A company being tracked."""
 
@@ -66,13 +84,19 @@ class CompanyProfile(BaseModel):
 
     company_id: str
     name: str
+    aliases: list[str] = Field(default_factory=list)
     company_context: Optional[str] = None
     websites: list[str] = Field(default_factory=list)
     sector: Optional[str] = None
     cluster_id: Optional[str] = None
+    # New structure for direct vs indirect competitors
+    direct_competitors: list[str] = Field(default_factory=list)
+    indirect_competitors: list[str] = Field(default_factory=list)
+    # Legacy field - kept for backwards compatibility
     competitors_candidate: list[str] = Field(default_factory=list)
     competitor_cluster_tags: list[str] = Field(default_factory=list)
     search_query_seeds: dict[str, list[str]] = Field(default_factory=dict)
+    ownership_note: Optional[str] = None  # For flagging ownership questions
 
 
 class CompetitorCluster(BaseModel):
@@ -95,7 +119,16 @@ class SearchQuery(BaseModel):
     related_cluster: Optional[str] = None
     related_sector: Optional[str] = None
     domain_filter: Optional[list[str]] = None  # e.g., ["gpbullhound.com"]
+    domain_denylist: Optional[list[str]] = None  # e.g., ["reddit.com", "quora.com"]
     recency_filter: str = "week"  # week, month, day
+    search_after_date: Optional[str] = None  # format MM/DD/YYYY
+    search_before_date: Optional[str] = None  # format MM/DD/YYYY
+    last_updated_after: Optional[str] = None  # format MM/DD/YYYY
+    last_updated_before: Optional[str] = None  # format MM/DD/YYYY
+    user_location: Optional[UserLocation] = None
+    search_context_size: SearchContextSize = SearchContextSize.MEDIUM
+    original_query_text: Optional[str] = None  # stores pre-optimization text
+    was_optimized: bool = False
     created_at: datetime
 
 

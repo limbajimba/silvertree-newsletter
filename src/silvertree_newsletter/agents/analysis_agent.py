@@ -19,7 +19,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
-import google.generativeai as genai
+from google import genai
 
 from silvertree_newsletter.workflow.state import (
     TriagedItem,
@@ -68,31 +68,30 @@ Use the full source content if provided; prefer it over the short summary when t
 ### For M&A DEALS (acquisitions, mergers, divestitures):
 5. **Carve-Out Screening** - This is critical for PE:
 
-   Only mark carve-out potential when the title/summary explicitly signals it.
-   Look for signals that parts of the deal could be carve-out opportunities:
-   - "Non-core" assets or divisions mentioned
-   - Business units being "rationalized" or "streamlined"
-   - Product lines outside the acquirer's focus
-   - Divisions with different customer bases
-   - Geographic units that don't fit
-   - Legacy products being deprioritized
+   **BE SKEPTICAL.** Most M&A deals are NOT carve-out opportunities.
+   Only mark carve-out potential when the title/summary **explicitly signals** it.
 
-   Assess carve-out potential:
-   - `high`: Clear non-core unit identified, strategic fit for SilverTree
-   - `medium`: Possible opportunity, worth monitoring
-   - `low`: Unlikely but noted
-   - `none`: No carve-out potential
-   - `n/a`: Not an M&A deal
+   **Signals of a Carve-Out Opportunity:**
+   - "Divestiture", "sale of non-core assets", "spinning off".
+   - An acquirer buying a company to "merge" specific units but "shed" others.
+   - Regulatory remedies requiring asset sales.
+   - A conglomerate selling a division to a PE firm.
 
-   If potential exists, specify:
-   - Target units that could be carved out (max 3-5 items, concise noun phrases, no repetition)
-   - Why they might be available (tie to explicit evidence)
-   - Strategic fit rationale for SilverTree (1-2 sentences, <= 60 words, no repetition)
+   **Assess Carve-Out Potential:**
+   - `high`: EXPLICIT mention of divestiture/sale of a non-core unit that fits SilverTree's thesis.
+   - `medium`: Strong implicit signals (e.g., "streamlining portfolio", "focusing on core business") suggesting assets might be shed.
+   - `low`: Speculative or unlikely.
+   - `none`: Standard acquisition of a whole company; no indication of splitting assets.
+   - `n/a`: Not an M&A deal.
+
+   If `high` or `medium`, specify:
+   - Target units that could be carved out (max 3-5 items).
+   - Why they might be available (tie to explicit evidence).
+   - Strategic fit rationale (must be compelling).
 
 6. **Signal Strength**:
    - Provide a `signal_score` (0-100) based on actionability and evidence.
-   - Use any scoring rubric provided in context (base score + adjustments).
-   - Provide `evidence` as short bullet phrases pulled from the title/summary.
+   - `high` carve-out potential should typically have a score > 80.
    - Job postings, listicles, or generic educational content should score <= 20.
 
 ## Output Format
@@ -153,9 +152,7 @@ class AnalysisAgent:
     max_workers: int = 1
 
     def __post_init__(self) -> None:
-        genai.configure(api_key=self.api_key)
-        self.client = genai.GenerativeModel(self.model)
-        self._thread_local = threading.local()
+        self.client = genai.Client(api_key=self.api_key)
         self._rate_limiter = RateLimiter(self.requests_per_minute) if self.requests_per_minute else None
 
     def analyze_item(self, item: TriagedItem, item_context: str | None = None) -> AnalyzedItem:
@@ -165,7 +162,10 @@ class AnalysisAgent:
         try:
             if self._rate_limiter:
                 self._rate_limiter.wait()
-            response = self._get_client().generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+            )
             result = self._parse_response(response.text)
             return self._build_analyzed_item(item, result)
         except Exception as e:
@@ -253,13 +253,6 @@ class AnalysisAgent:
             triage_reason=item.triage_reason,
         )
         return f"{system}\n\n{user}"
-
-    def _get_client(self):
-        client = getattr(self._thread_local, "client", None)
-        if client is None:
-            client = genai.GenerativeModel(self.model)
-            self._thread_local.client = client
-        return client
 
     def _parse_response(self, response_text: str) -> dict:
         """Parse JSON from LLM response."""

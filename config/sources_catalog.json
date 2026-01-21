@@ -4,9 +4,11 @@
     "finextra_regulation": "https://www.finextra.com/rss/channel.aspx?channel=regulation",
     "techcrunch": "https://techcrunch.com/feed/",
     "utility_dive": "https://www.utilitydive.com/feeds/news/",
-    "higher_ed_dive": "https://www.higheredive.com/feeds/news/",
-    "martech": "https://martech.org/feed/",
-    "cio": "https://www.cio.com/feed/"
+    "cio": "https://www.cio.com/feed/",
+    "businesswire": "https://feed.businesswire.com/rss/home/?rss=G1QFDERJXkJeEFpRWg==",
+    "harvard_law_ma": "https://corpgov.law.harvard.edu/category/mergers-and-acquisitions/feed/",
+    "pe_wire": "https://www.privateequitywire.co.uk/feed/",
+    "google_news_pe": "https://news.google.com/rss/search?q=private+equity+M%26A+deal&hl=en-US&gl=US&ceid=US:en"
   },
   "domain_sources": [
     "gpbullhound.com",
@@ -16,8 +18,6 @@
     "cloudeagle.ai",
     "gartner.com",
     "tiatra.com",
-    "sumble.com",
-    "softwareadvice.com",
     "cbinsights.com",
     "martech.org",
     "martechvibe.com",
@@ -30,13 +30,20 @@
     "energylivenews.com",
     "adexchanger.com",
     "ucisa.ac.uk",
-    "g2.com",
     "businesswire.com",
-    "researchandmarkets.com",
     "techcrunch.com",
     "utilitydive.com",
     "higheredive.com",
-    "cio.com"
+    "cio.com",
+    "reuters.com",
+    "ft.com",
+    "wsj.com",
+    "bloomberg.com",
+    "axios.com",
+    "sifted.eu",
+    "pitchbook.com",
+    "privateequitywire.co.uk",
+    "pehub.com"
   ],
   "trusted_domains": [
     "gpbullhound.com",
@@ -55,9 +62,22 @@
     "energylivenews.com",
     "adexchanger.com",
     "ucisa.ac.uk",
-    "gartner.com"
+    "gartner.com",
+    "reuters.com",
+    "ft.com",
+    "wsj.com",
+    "bloomberg.com",
+    "axios.com",
+    "sifted.eu",
+    "pitchbook.com",
+    "privateequitywire.co.uk",
+    "pehub.com",
+    "cbinsights.com"
   ],
   "notes": [
-    "LinkedIn sources are excluded for now."
+    "LinkedIn sources are excluded for now.",
+    "Removed noisy sources: sumble.com, g2.com, softwareadvice.com, researchandmarkets.com",
+    "Added quality M&A/PE sources: reuters, ft, wsj, bloomberg, axios, sifted, pitchbook, privateequitywire, pehub",
+    "Removed broken RSS feeds: higher_ed_dive (connection issues), martech (403 blocked), pehub (401 requires subscription)"
   ]
 }

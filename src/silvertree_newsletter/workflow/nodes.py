@@ -15,14 +15,13 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from silvertree_newsletter.config import settings
+from silvertree_newsletter.models.schemas import SearchContextSize, UserLocation
 from silvertree_newsletter.services.rss_collector import RSSCollector
 from silvertree_newsletter.services.perplexity import PerplexityClient
 from silvertree_newsletter.services.content_fetcher import ContentFetcher
 from silvertree_newsletter.services.email_sender import SmtpEmailSender
-from silvertree_newsletter.agents.triage_agent import TriageAgent
-from silvertree_newsletter.agents.analysis_agent import AnalysisAgent
-from silvertree_newsletter.agents.email_composer import EmailComposerAgent
-from silvertree_newsletter.agents.dedupe_agent import DedupeAgent
+# NOTE: Agent imports moved inside functions to avoid circular imports
+# agents.* -> workflow.state -> workflow/__init__ -> workflow.graph -> workflow.nodes -> agents.*
 from silvertree_newsletter.workflow.state import (
     NewsletterState,
     RawNewsItem,
@@ -37,6 +36,7 @@ from silvertree_newsletter.tools.prompt_context_loader import (
     build_prompt_context_summary,
     build_item_context_for_triage,
     build_item_context_for_analysis,
+    build_carveout_context_for_research,
     extract_relevance_thresholds,
 )
 from silvertree_newsletter.tools.source_catalog import load_source_catalog
@@ -96,11 +96,17 @@ def initialize_node(state: NewsletterState) -> dict:
     lines = ["SilverTree Equity Portfolio Companies:"]
     for company in companies:
         lines.append(f"\n• {company.name}")
+        if company.aliases:
+            lines.append(f"  Also known as: {', '.join(company.aliases[:3])}")
         if company.company_context:
             lines.append(f"  {company.company_context}")
         if company.sector:
             lines.append(f"  Sector: {company.sector}")
-        if company.competitors_candidate:
+        if company.direct_competitors:
+            lines.append(f"  Direct competitors: {', '.join(company.direct_competitors[:5])}")
+        if company.indirect_competitors:
+            lines.append(f"  Indirect competitors: {', '.join(company.indirect_competitors[:5])}")
+        if not company.direct_competitors and not company.indirect_competitors and company.competitors_candidate:
             lines.append(f"  Competitors: {', '.join(company.competitors_candidate[:5])}")
 
     if clusters:
@@ -125,7 +131,10 @@ def initialize_node(state: NewsletterState) -> dict:
             lines.append(summary)
         relevance_thresholds = extract_relevance_thresholds(prompt_context)
 
-    lines.append("\n\nKey Sectors: CPG/TPM, Higher Ed SIS, Enterprise Architecture, Marketing Automation, KYC/CLM, Utilities")
+    lines.append(
+        "\n\nKey Sectors: CPG/TPM, Higher Ed SIS, Enterprise Architecture, "
+        "Marketing Automation/CDP, KYC/CLM, Utilities, R&D tax credits, Dynamics 365 partners"
+    )
     portfolio_context = "\n".join(lines)
 
     return {
@@ -214,14 +223,18 @@ async def collect_search_node(state: NewsletterState) -> dict:
         companies = companies[: settings.max_search_companies]
         logger.info(f"Limiting search companies to {len(companies)}")
 
-    # Build search queries
+    # Parse search context size from settings
+    search_context_size = SearchContextSize(settings.perplexity_search_context_size)
+
+    # Build search queries with natural language format
     queries = build_search_queries(
         companies=companies,
         clusters=clusters,
         lookback_days=state["lookback_days"],
         max_company_terms=3,
-        max_competitors=2,
-        max_bucket_terms=4,
+        max_competitors=8,
+        max_event_terms=4,
+        search_context_size=search_context_size,
     )
 
     catalog_path = Path(settings.sources_catalog_path)
@@ -235,6 +248,7 @@ async def collect_search_node(state: NewsletterState) -> dict:
             domains=domain_sources,
             lookback_days=state["lookback_days"],
             max_domains=settings.max_domain_source_queries,
+            search_context_size=search_context_size,
         )
 
     if settings.max_queries_per_type:
@@ -254,6 +268,18 @@ async def collect_search_node(state: NewsletterState) -> dict:
     logger.info(f"Running {len(queries)} search queries")
     logger.info(f"Search query breakdown: {by_type}")
 
+    # Build default location from settings
+    default_location = None
+    if settings.perplexity_default_location_country:
+        default_location = UserLocation(country=settings.perplexity_default_location_country)
+
+    # Parse domain denylist from settings
+    domain_denylist = None
+    if settings.perplexity_domain_denylist:
+        domain_denylist = [
+            d.strip() for d in settings.perplexity_domain_denylist.split(",") if d.strip()
+        ]
+
     client = PerplexityClient(
         api_key=settings.perplexity_api_key,
         model=settings.perplexity_model,
@@ -262,14 +288,19 @@ async def collect_search_node(state: NewsletterState) -> dict:
         recency_filter=_recency_filter(state["lookback_days"]),
         lookback_days=state["lookback_days"],
         keep_undated=settings.keep_undated_items,
+        max_age_days=settings.max_article_age_days,
         requests_per_minute=settings.perplexity_rpm,
         max_retries=settings.perplexity_max_retries,
+        search_context_size=search_context_size,
+        default_location=default_location,
+        domain_denylist=domain_denylist,
+        use_date_filters=settings.perplexity_use_date_filters,
     )
 
     items: list[RawNewsItem] = []
     errors: list[str] = []
 
-    results = await client.search_batch(queries)
+    results = await client.search_batch(queries, max_concurrent=settings.perplexity_max_concurrent)
     for query, query_items, error in results:
         if error:
             errors.append(f"Perplexity search failed for {query.id}: {error}")
@@ -306,6 +337,8 @@ async def collect_search_node(state: NewsletterState) -> dict:
 
 def triage_node(state: NewsletterState) -> dict:
     """Triage all collected items."""
+    from silvertree_newsletter.agents.triage_agent import TriageAgent
+
     items = state.get("raw_items", [])
     logger.info(f"Triaging {len(items)} items...")
 
@@ -479,6 +512,8 @@ async def fetch_full_content_node(state: NewsletterState) -> dict:
 
 def dedupe_node(state: NewsletterState) -> dict:
     """Deduplicate relevant items after triage."""
+    from silvertree_newsletter.agents.dedupe_agent import DedupeAgent
+
     relevant_items = state.get("relevant_items", [])
     logger.info(f"Deduplicating {len(relevant_items)} relevant items...")
 
@@ -525,6 +560,8 @@ def dedupe_node(state: NewsletterState) -> dict:
 
 def analyze_node(state: NewsletterState) -> dict:
     """Deep analysis of relevant items."""
+    from silvertree_newsletter.agents.analysis_agent import AnalysisAgent
+
     full_text_count = sum(1 for item in state["relevant_items"] if item.raw_item.full_text)
     logger.info(
         f"Analyzing {len(state['relevant_items'])} relevant items (full text: {full_text_count})..."
@@ -712,11 +749,166 @@ def curate_node(state: NewsletterState) -> dict:
 
 
 # =============================================================================
+# NODE: CARVE-OUT RESEARCH
+# =============================================================================
+
+async def carve_out_research_node(state: NewsletterState) -> dict:
+    """Generate a deep research dossier for carve-out opportunities."""
+    carve_outs = state.get("carve_out_opportunities", [])
+    if not carve_outs:
+        return {
+            "carve_out_research_report": None,
+            "carve_out_deep_research_data": [],
+        }
+
+    # Check if deep research is enabled
+    use_deep_research = settings.carve_out_deep_research_enabled and settings.gemini_api_key
+
+    if not use_deep_research and not settings.carve_out_research_enabled:
+        logger.info("Carve-out research disabled; skipping.")
+        return {
+            "carve_out_research_report": None,
+            "carve_out_deep_research_data": [],
+        }
+
+    if not settings.gemini_api_key:
+        logger.warning("Carve-out research skipped: GEMINI_API_KEY not configured.")
+        return {
+            "carve_out_research_report": None,
+            "carve_out_deep_research_data": [],
+        }
+
+    # Filter to high-priority carve-outs if configured
+    research_carve_outs = carve_outs
+    if use_deep_research and settings.deep_research_high_priority_only:
+        research_carve_outs = [co for co in carve_outs if co.priority == "high"]
+        if len(research_carve_outs) < len(carve_outs):
+            logger.info(
+                f"Filtering to high-priority carve-outs for deep research: "
+                f"{len(research_carve_outs)}/{len(carve_outs)}"
+            )
+
+    if not research_carve_outs:
+        logger.info("No high-priority carve-outs for deep research.")
+        return {
+            "carve_out_research_report": None,
+            "carve_out_deep_research_data": [],
+        }
+
+    prompt_context_path = Path(settings.prompt_context_path)
+    if not prompt_context_path.exists():
+        prompt_context_path = Path(__file__).parent.parent.parent.parent / settings.prompt_context_path
+    prompt_context = load_prompt_context(prompt_context_path)
+
+    # Attempt deep research first if enabled
+    report = None
+    deep_research_data = []
+
+    if use_deep_research:
+        try:
+            from silvertree_newsletter.agents.deep_research_agent import DeepResearchCarveOutAgent
+            from silvertree_newsletter.tools.portfolio_context_files import load_all_portfolio_contexts
+
+            agent = DeepResearchCarveOutAgent(
+                api_key=settings.gemini_api_key,
+                poll_interval_seconds=settings.deep_research_poll_interval,
+                max_wait_minutes=settings.deep_research_max_wait_minutes,
+            )
+            logger.info(
+                f"Deep research agent configured (poll_interval={agent.poll_interval_seconds}s, "
+                f"max_wait={agent.max_wait_minutes}min)"
+            )
+
+            # Load portfolio contexts
+            context_dir = Path(settings.portfolio_context_dir)
+            if not context_dir.exists():
+                context_dir = Path(__file__).parent.parent.parent.parent / settings.portfolio_context_dir
+            portfolio_contexts = load_all_portfolio_contexts(context_dir)
+            logger.info(f"Loaded {len(portfolio_contexts)} portfolio context files for deep research")
+
+            def progress(completed: int, total: int) -> None:
+                logger.info(f"Deep research progress: {completed}/{total}")
+
+            report, results = await agent.generate_report_async(
+                research_carve_outs,
+                portfolio_contexts=portfolio_contexts,
+                on_progress=progress,
+            )
+
+            # Store structured data for potential use
+            deep_research_data = [
+                {
+                    "target_company": result.target_company,
+                    "success": result.success,
+                    "data": result.data,
+                    "research_time": result.research_time_seconds,
+                }
+                for result in results
+            ]
+
+            logger.info(
+                f"Deep research completed: {sum(1 for r in results if r.success)}/{len(results)} successful"
+            )
+
+        except Exception as e:
+            logger.error(f"Deep research failed, falling back to standard research: {e}")
+            use_deep_research = False
+
+    # Fallback to standard research if deep research not used or failed
+    if not use_deep_research or not report:
+        from silvertree_newsletter.agents.carve_out_research_agent import CarveOutResearchAgent
+
+        agent = CarveOutResearchAgent(
+            api_key=settings.gemini_api_key,
+            model=settings.carve_out_research_model or settings.default_model,
+            requests_per_minute=settings.llm_requests_per_minute,
+            max_sources=settings.carve_out_research_max_sources,
+            max_full_text_chars=settings.full_text_max_chars,
+        )
+        logger.info(
+            f"Standard carve-out research agent configured (model={agent.model}, rpm={agent.requests_per_minute})"
+        )
+
+        def progress(completed: int, total: int) -> None:
+            logger.info(f"Carve-out research progress: {completed}/{total}")
+
+        def build_context(carve_out) -> str:
+            if not prompt_context:
+                return ""
+            source_item = carve_out.source_item
+            triaged = source_item.triaged_item
+            return build_carveout_context_for_research(
+                portfolio_company=triaged.related_portfolio_company,
+                competitors=triaged.related_competitors,
+                prompt_context=prompt_context,
+            )
+
+        report = agent.generate_report(
+            research_carve_outs,
+            context_builder=build_context,
+            on_progress=progress,
+        )
+
+    logger.info("Carve-out research dossier generated.")
+    return {
+        "carve_out_research_report": report,
+        "carve_out_deep_research_data": deep_research_data,
+        "metrics": {
+            **state.get("metrics", {}),
+            "carve_out_research_count": len(research_carve_outs),
+            "deep_research_used": use_deep_research,
+        },
+    }
+
+
+# =============================================================================
 # NODE: COMPOSE
 # =============================================================================
 
 def compose_node(state: NewsletterState) -> dict:
     """Compose the newsletter email."""
+    from silvertree_newsletter.agents.email_composer import EmailComposerAgent
+
     logger.info("Composing newsletter...")
 
     agent = EmailComposerAgent(
@@ -724,10 +916,23 @@ def compose_node(state: NewsletterState) -> dict:
         model=settings.composer_model or settings.default_model,
     )
 
+    carve_out_note = None
+    if state.get("carve_out_research_report"):
+        carve_out_count = len(state.get("carve_out_opportunities", []))
+        plural = "opportunities" if carve_out_count != 1 else "opportunity"
+        pdf_available = bool(state.get("carve_out_research_pdf_path"))
+        attachment_type = "PDF dossier" if pdf_available else "research report"
+        carve_out_note = (
+            f"A comprehensive {attachment_type} covering {carve_out_count} {plural} is attached. "
+            "Each dossier includes deal overview, separation complexity analysis, strategic fit assessment, "
+            "diligence questions, and recommended next steps."
+        )
+
     newsletter, html = agent.compose_newsletter(
         analyzed_items=state["analyzed_items"],
         carve_outs=state["carve_out_opportunities"],
         total_processed=len(state.get("raw_items", [])),
+        carve_out_note=carve_out_note,
     )
 
     logger.info(f"Newsletter composed: {newsletter.subject}")
@@ -753,7 +958,7 @@ def compose_node(state: NewsletterState) -> dict:
 # =============================================================================
 
 def save_output_node(state: NewsletterState) -> dict:
-    """Save newsletter to file."""
+    """Save newsletter to file and generate PDF dossier."""
     output_dir = Path(settings.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -776,8 +981,41 @@ def save_output_node(state: NewsletterState) -> dict:
     json_path = output_dir / f"summary_{timestamp}.json"
     json_path.write_text(json.dumps(summary, indent=2, default=str))
 
+    report_path = None
+    pdf_path = None
+    report_text = state.get("carve_out_research_report")
+    if report_text:
+        # Save markdown report
+        report_path = output_dir / f"carveout_dossier_{timestamp}.md"
+        report_path.write_text(report_text)
+        logger.info(f"Saved carve-out dossier to {report_path}")
+
+        # Generate PDF from markdown
+        try:
+            from silvertree_newsletter.services.pdf_generator import generate_carveout_pdf
+
+            pdf_path_str = generate_carveout_pdf(
+                content=report_text,
+                output_dir=output_dir,
+                timestamp=timestamp,
+            )
+            if pdf_path_str:
+                pdf_path = Path(pdf_path_str)
+                logger.info(f"Generated PDF dossier: {pdf_path}")
+            else:
+                logger.warning("PDF generation failed")
+        except Exception as e:
+            logger.error(f"Failed to generate PDF dossier: {e}")
+
     return {
-        "metrics": {**state.get("metrics", {}), "output_path": str(html_path)},
+        "carve_out_research_path": str(report_path) if report_path else None,
+        "carve_out_research_pdf_path": str(pdf_path) if pdf_path else None,
+        "metrics": {
+            **state.get("metrics", {}),
+            "output_path": str(html_path),
+            "carve_out_report_path": str(report_path) if report_path else None,
+            "carve_out_pdf_path": str(pdf_path) if pdf_path else None,
+        },
     }
 
 
@@ -831,11 +1069,23 @@ def send_email_node(state: NewsletterState) -> dict:
         timeout_seconds=settings.smtp_timeout_seconds,
     )
 
+    attachments: list[str] = []
+    # Prefer PDF attachment over markdown
+    pdf_path = state.get("carve_out_research_pdf_path")
+    if pdf_path and Path(pdf_path).exists():
+        attachments.append(pdf_path)
+    else:
+        # Fall back to markdown if PDF not available
+        report_path = state.get("carve_out_research_path")
+        if report_path and Path(report_path).exists():
+            attachments.append(report_path)
+
     result = sender.send_html(
         subject=newsletter.subject,
         html=html,
         from_email=from_email,
         to_emails=to_emails,
+        attachments=attachments,
     )
 
     if result.success:

@@ -32,6 +32,18 @@ def _build_subject(path: Path, provided: str | None) -> str:
     return f"SilverTree Newsletter (Test): {path.stem}"
 
 
+def _clean_attachments(raw: list[str]) -> list[str]:
+    attachments: list[str] = []
+    for entry in raw or []:
+        if not entry:
+            continue
+        for part in entry.split(","):
+            cleaned = part.strip()
+            if cleaned:
+                attachments.append(cleaned)
+    return attachments
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Send an existing HTML newsletter via SMTP.",
@@ -62,6 +74,13 @@ def main() -> int:
         dest="reply_to",
         default="",
         help="Optional reply-to address.",
+    )
+    parser.add_argument(
+        "--attach",
+        dest="attachments",
+        action="append",
+        default=[],
+        help="Attachment file path (repeatable or comma-separated).",
     )
     parser.add_argument(
         "--force",
@@ -111,6 +130,7 @@ def main() -> int:
         from_email=from_email,
         to_emails=to_emails,
         reply_to=args.reply_to or None,
+        attachments=_clean_attachments(args.attachments),
     )
 
     if result.success:

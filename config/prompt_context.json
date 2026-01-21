@@ -296,8 +296,9 @@
   },
   "portfolio_companies": [
     {
-      "company_id": "kantar-xtel",
-      "name": "Kantar XTEL",
+      "company_id": "xtel",
+      "name": "XTEL",
+      "aliases": ["Kantar XTEL"],
       "sector_cluster": "cpg_tpm_rgm",
       "core_thesis": "Owns a high-value control point in CPG trade spend and promotion effectiveness where ROI pressure drives platform adoption and consolidation. Scale + data advantage can create strong switching costs and expansion into broader RGM workflows.",
       "current_strategic_priority": "Accelerate enterprise wins and deepen differentiation with AI-driven optimization while expanding ecosystem integrations (ERP, retailer data, SIs) to lock in distribution.",
@@ -411,8 +412,9 @@
       }
     },
     {
-      "company_id": "vindsubsidies",
-      "name": "Vindsubsidies",
+      "company_id": "ignite-group",
+      "name": "Ignite Group",
+      "aliases": ["Vindsubsidies"],
       "sector_cluster": "grants_subsidies",
       "core_thesis": "Grant/subsidy advisory plus a scalable database product can create a defensible intelligence + workflow moat, particularly in complex EU schemes. Consolidation can create coverage breadth and pricing power.",
       "current_strategic_priority": "Scale database-led recurring revenue and expand scheme coverage/automation while continuing selective roll-up of specialist advisory boutiques.",

@@ -1,7 +1,7 @@
 """LangGraph workflow definition for the newsletter pipeline.
 
 Pipeline:
-    Initialize → Collect (RSS + Search) → Triage → Dedupe → Fetch Full Content → Analyze → Curate → Compose → Save → Send
+    Initialize → Collect (RSS + Search) → Triage → Dedupe → Fetch Full Content → Analyze → Curate → Carve-Out Research → Compose → Save → Send
 
 Uses LangGraph for:
 - State management between nodes
@@ -12,9 +12,11 @@ Uses LangGraph for:
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Literal
 
 from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from silvertree_newsletter.workflow.state import NewsletterState
 from silvertree_newsletter.workflow.nodes import (
@@ -26,6 +28,7 @@ from silvertree_newsletter.workflow.nodes import (
     fetch_full_content_node,
     analyze_node,
     curate_node,
+    carve_out_research_node,
     compose_node,
     save_output_node,
     send_email_node,
@@ -67,6 +70,8 @@ def create_newsletter_graph() -> StateGraph:
            ↓                       │
          curate                    │
            ↓                       │
+     carve_out_research            │
+           ↓                       │
         compose ←──────────────────┘
           ↓
          save
@@ -87,6 +92,7 @@ def create_newsletter_graph() -> StateGraph:
     graph.add_node("fetch_full_content", fetch_full_content_node)
     graph.add_node("analyze", analyze_node)
     graph.add_node("curate", curate_node)
+    graph.add_node("carve_out_research", carve_out_research_node)
     graph.add_node("compose", compose_node)
     graph.add_node("save", save_output_node)
     graph.add_node("send_email", send_email_node)
@@ -113,7 +119,8 @@ def create_newsletter_graph() -> StateGraph:
 
     graph.add_edge("fetch_full_content", "analyze")
     graph.add_edge("analyze", "curate")
-    graph.add_edge("curate", "compose")
+    graph.add_edge("curate", "carve_out_research")
+    graph.add_edge("carve_out_research", "compose")
     graph.add_edge("compose", "save")
     graph.add_edge("save", "send_email")
     graph.add_edge("send_email", END)
@@ -121,20 +128,32 @@ def create_newsletter_graph() -> StateGraph:
     return graph
 
 
-def compile_newsletter_workflow():
-    """Compile the newsletter workflow for execution."""
+def compile_newsletter_workflow(checkpointer=None):
+    """Compile the newsletter workflow for execution.
+
+    Args:
+        checkpointer: Optional checkpointer for state persistence (e.g., AsyncSqliteSaver)
+    """
     graph = create_newsletter_graph()
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)
 
 
 # Convenience function to run the workflow
-async def run_newsletter_workflow() -> NewsletterState:
-    """Run the complete newsletter workflow."""
-    logger.info("Starting newsletter workflow...")
+async def run_newsletter_workflow(thread_id: str = "default", resume: bool = False) -> NewsletterState:
+    """Run the complete newsletter workflow with optional checkpointing.
 
-    workflow = compile_newsletter_workflow()
+    Args:
+        thread_id: Unique identifier for this workflow run (for checkpointing)
+        resume: If True, resume from last checkpoint; if False, start fresh
+    """
+    logger.info("Starting newsletter workflow...", extra={"thread_id": thread_id, "resume": resume})
 
-    # Initial state (empty - initialize node will populate)
+    # Set up SQLite checkpointing for state persistence
+    checkpoint_dir = Path("data/checkpoints")
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_db = checkpoint_dir / "workflow.sqlite"
+
+    # Initial state definition (used for fresh starts or when no checkpoint exists)
     initial_state: NewsletterState = {
         "portfolio_context": "",
         "lookback_days": 7,
@@ -148,6 +167,8 @@ async def run_newsletter_workflow() -> NewsletterState:
         "triage_stats": {},
         "analyzed_items": [],
         "carve_out_opportunities": [],
+        "carve_out_research_report": None,
+        "carve_out_research_path": None,
         "newsletter": None,
         "newsletter_html": "",
         "started_at": None,
@@ -156,8 +177,25 @@ async def run_newsletter_workflow() -> NewsletterState:
         "metrics": {},
     }
 
-    # Run the workflow
-    final_state = await workflow.ainvoke(initial_state)
+    async with AsyncSqliteSaver.from_conn_string(str(checkpoint_db)) as checkpointer:
+        workflow = compile_newsletter_workflow(checkpointer=checkpointer)
+
+        config = {"configurable": {"thread_id": thread_id}}
+
+        if resume:
+            # Check if a checkpoint exists for this thread_id
+            checkpoint = await checkpointer.aget(config)
+            if checkpoint is None:
+                logger.warning(f"No checkpoint found for thread_id '{thread_id}'. Starting fresh instead.")
+                final_state = await workflow.ainvoke(initial_state, config)
+            else:
+                # Resume from last checkpoint
+                logger.info("Resuming from last checkpoint...")
+                final_state = await workflow.ainvoke(None, config)
+        else:
+            # Start fresh
+            logger.info("Starting new workflow (checkpoints will be saved)...")
+            final_state = await workflow.ainvoke(initial_state, config)
 
     logger.info("Newsletter workflow complete!")
     logger.info(f"Metrics: {final_state.get('metrics', {})}")
